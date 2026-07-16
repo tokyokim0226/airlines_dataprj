@@ -2,8 +2,6 @@
 
 ## Project Overview
 
-(need shorten)
-
 This repository contains a portfolio project for collecting, storing, and analysing flight-price data over time.
 
 The project should demonstrate practical data engineering and analytics skills through the following pipeline:
