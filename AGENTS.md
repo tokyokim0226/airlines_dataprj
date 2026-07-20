@@ -19,6 +19,7 @@ mock flight data
 → query price history
 ```
 
+
 Do not add AWS, Airflow, Spark, Kafka, dashboards, or a real API until the local pipeline works.
 
 ## Language and Environment
