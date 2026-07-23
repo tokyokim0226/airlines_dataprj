@@ -4,16 +4,16 @@ Use this as a running map while walking through the first implementation.
 
 ## 1. Problem And Goal
 
-- [ ] Explain why the original `airlines` package name was a mismatch.
-- [ ] Explain why this project is a data pipeline, not a booking app.
-- [ ] Explain the first end-to-end behavior we needed to prove.
+- [x] Explain why the original `airlines` package name was a mismatch.
+- [x] Explain why this project is a data pipeline, not a booking app.
+- [x] Explain the first end-to-end behavior we needed to prove.
 
 ## 2. Project Setup
 
-- [ ] Explain what `pyproject.toml` controls.
-- [ ] Explain why `.python-version` was changed to Python 3.12.
-- [ ] Explain what `uv.lock` is for.
-- [ ] Explain why `pytest` and `ruff` were added as development dependencies.
+- [x] Explain what `pyproject.toml` controls.
+- [x] Explain why `.python-version` was changed to Python 3.12.
+- [x] Explain what `uv.lock` is for.
+- [x] Explain why `pytest` and `ruff` were added as development dependencies.
 
 ## 3. Code Structure
 
@@ -27,7 +27,7 @@ Use this as a running map while walking through the first implementation.
 ## 4. Data Model And Rules
 
 - [ ] Explain the difference between `FlightOffer`, `SearchRun`, and `PriceObservation`.
-- [ ] Explain why price observations should never overwrite older observations.
+- [x] Explain why price observations should never overwrite older observations.
 - [ ] Explain why `Decimal` is used for prices.
 - [ ] Explain why datetimes should be timezone-aware.
 - [ ] Explain the validation rules for airport codes, route, price, and flight times.
