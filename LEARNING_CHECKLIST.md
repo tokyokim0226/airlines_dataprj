@@ -13,7 +13,7 @@ Use this as a running map while walking through the first implementation.
 - [x] Explain what `pyproject.toml` controls/does.
 - [x] Explain why `.python-version` was changed to Python 3.12.
 - [x] Explain what `uv.lock` is for.
-- [x] Explain why `pytest` and `ruff` were added as development dependencies.
+- [x] Explain why `pytest` and `ruff` were added as development dependencies
 
 ## 3. Code Structure
 
