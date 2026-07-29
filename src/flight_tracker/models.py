@@ -6,18 +6,21 @@ from decimal import Decimal
 
 
 def _validate_airport_code(value: str, field_name: str) -> str:
+    # Keep airport codes in one predictable format, like "LAX" or "JFK".
     if len(value) != 3 or not value.isalpha() or not value.isupper():
         raise ValueError(f"{field_name} must be a 3-letter uppercase airport code")
     return value
 
 
 def _validate_aware_datetime(value: datetime, field_name: str) -> datetime:
+    # Timezone-aware datetimes prevent confusing local-time comparisons later.
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError(f"{field_name} must be timezone-aware")
     return value
 
 
 def _validate_currency(value: str) -> str:
+    # Currency codes follow the common 3-letter format, like "USD" or "KRW".
     if len(value) != 3 or not value.isalpha() or not value.isupper():
         raise ValueError("currency must be a 3-letter uppercase currency code")
     return value
@@ -25,6 +28,8 @@ def _validate_currency(value: str) -> str:
 
 @dataclass(frozen=True)
 class FlightOffer:
+    """One flight or itinerary returned by a provider."""
+
     origin: str
     destination: str
     departure_time: datetime
@@ -36,6 +41,7 @@ class FlightOffer:
     provider: str
 
     def __post_init__(self) -> None:
+        # __post_init__ runs right after dataclass creation, so bad data fails early.
         origin = _validate_airport_code(self.origin, "origin")
         destination = _validate_airport_code(self.destination, "destination")
         if origin == destination:
@@ -62,6 +68,8 @@ class FlightOffer:
 
 @dataclass(frozen=True)
 class SearchRun:
+    """One attempt to search a route and departure date."""
+
     origin: str
     destination: str
     departure_date: date
@@ -70,6 +78,7 @@ class SearchRun:
     id: int | None = None
 
     def __post_init__(self) -> None:
+        # A search run records when and where we looked, even if no offers appear.
         origin = _validate_airport_code(self.origin, "origin")
         destination = _validate_airport_code(self.destination, "destination")
         if origin == destination:
@@ -81,10 +90,13 @@ class SearchRun:
 
 @dataclass(frozen=True)
 class PriceObservation:
+    """The price seen for one offer at one specific observation time."""
+
     offer: FlightOffer
     observed_at: datetime
     search_run_id: int | None = None
     id: int | None = None
 
     def __post_init__(self) -> None:
+        # The observation time is what lets us build price history over time.
         _validate_aware_datetime(self.observed_at, "observed_at")

@@ -10,9 +10,11 @@ from flight_tracker.models import FlightOffer, PriceObservation, SearchRun
 
 class FlightPriceDatabase:
     def __init__(self, path: str | Path) -> None:
+        # SQLite stores everything in one local file at this path.
         self.path = Path(path)
 
     def initialize(self) -> None:
+        # Create tables if this is a brand-new local database file.
         with self._connect() as connection:
             connection.execute(
                 """
@@ -28,6 +30,8 @@ class FlightPriceDatabase:
             )
             connection.execute(
                 """
+                -- Each row here is historical. We insert new rows instead of
+                -- updating old rows so price changes can be analyzed later.
                 CREATE TABLE IF NOT EXISTS price_observations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     search_run_id INTEGER NOT NULL,
@@ -47,6 +51,7 @@ class FlightPriceDatabase:
             )
 
     def insert_search_run(self, search_run: SearchRun) -> SearchRun:
+        # Store the collection attempt first so observations can point back to it.
         with self._connect() as connection:
             cursor = connection.execute(
                 """
@@ -84,6 +89,7 @@ class FlightPriceDatabase:
             raise ValueError("search_run_id is required before storing an observation")
 
         offer = observation.offer
+        # This is always an INSERT, never an UPDATE, to preserve old observations.
         with self._connect() as connection:
             cursor = connection.execute(
                 """
@@ -130,6 +136,8 @@ class FlightPriceDatabase:
         destination: str,
         departure_date: date,
     ) -> list[PriceObservation]:
+        # The departure_time column includes a full timestamp, so compare only
+        # the YYYY-MM-DD date part when filtering for a departure date.
         start_of_day = datetime.combine(
             departure_date, datetime.min.time()
         ).date().isoformat()
@@ -163,11 +171,13 @@ class FlightPriceDatabase:
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path)
+        # SQLite requires this setting per connection for foreign keys to work.
         connection.execute("PRAGMA foreign_keys = ON")
         return connection
 
     @staticmethod
     def _row_to_observation(row: sqlite3.Row | tuple[object, ...]) -> PriceObservation:
+        # SQLite returns basic values; convert them back into our model objects.
         (
             observation_id,
             search_run_id,

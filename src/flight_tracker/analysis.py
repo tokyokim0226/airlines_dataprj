@@ -12,4 +12,5 @@ def get_price_history(
     destination: str,
     departure_date: date,
 ) -> list[PriceObservation]:
+    # Keep analysis code separate from storage details, even while it is tiny.
     return database.get_price_history(origin, destination, departure_date)

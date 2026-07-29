@@ -12,6 +12,7 @@ class MockFlightProvider:
     name = "mock"
 
     def __init__(self, prices: list[Decimal] | None = None) -> None:
+        # Tests can pass exact prices; otherwise the provider uses simple defaults.
         self._prices = prices or [Decimal("250.00"), Decimal("265.00")]
         self._search_count = 0
 
@@ -21,9 +22,11 @@ class MockFlightProvider:
         destination: str,
         departure_date: date,
     ) -> list[FlightOffer]:
+        # Each search advances the price so repeated collection creates history.
         price = self._prices[self._search_count % len(self._prices)]
         self._search_count += 1
 
+        # Keep mock flight times deterministic: same route/date always has same times.
         departure_time = datetime.combine(
             departure_date, time(hour=9), tzinfo=timezone.utc
         )

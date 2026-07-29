@@ -11,6 +11,7 @@ from flight_tracker.mock_provider import MockFlightProvider
 
 
 def main() -> None:
+    # argparse turns terminal flags into Python values.
     parser = argparse.ArgumentParser(description="Collect local mock flight prices.")
     parser.add_argument("--database", default="flight_prices.sqlite3")
     parser.add_argument("--origin", default="LAX")
@@ -19,6 +20,8 @@ def main() -> None:
     args = parser.parse_args()
 
     departure_date = date.fromisoformat(args.departure_date)
+
+    # The CLI wires concrete local pieces together: SQLite plus mock data.
     database = FlightPriceDatabase(Path(args.database))
     provider = MockFlightProvider()
 
@@ -31,6 +34,7 @@ def main() -> None:
     )
     history = get_price_history(database, args.origin, args.destination, departure_date)
 
+    # Print the full history after this collection so the CLI shows accumulation.
     for observation in history:
         offer = observation.offer
         print(

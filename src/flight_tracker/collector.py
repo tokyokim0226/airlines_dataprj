@@ -8,6 +8,8 @@ from flight_tracker.models import FlightOffer, PriceObservation, SearchRun
 
 
 class FlightProvider(Protocol):
+    """The small interface any flight data provider must follow."""
+
     name: str
 
     def search(
@@ -27,9 +29,13 @@ def collect_prices(
     departure_date: date,
     observed_at: datetime | None = None,
 ) -> list[PriceObservation]:
+    # Make the collector safe to call even before the database file exists.
     database.initialize()
+
+    # Tests can pass observed_at for predictable history; real runs use now.
     collected_at = observed_at or datetime.now(UTC)
 
+    # A SearchRun records this collection attempt before we store its results.
     search_run = database.insert_search_run(
         SearchRun(
             origin=origin,
@@ -42,6 +48,7 @@ def collect_prices(
 
     observations: list[PriceObservation] = []
     for offer in provider.search(origin, destination, departure_date):
+        # Wrap the provider's offer with the time we observed its price.
         observation = PriceObservation(
             offer=offer,
             observed_at=collected_at,
