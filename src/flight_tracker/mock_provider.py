@@ -6,6 +6,7 @@ from decimal import Decimal
 from flight_tracker.models import FlightOffer
 
 
+
 class MockFlightProvider:
     """Predictable local provider used for tests and early pipeline work."""
 
