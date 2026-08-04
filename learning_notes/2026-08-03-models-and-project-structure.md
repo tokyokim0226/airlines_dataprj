@@ -1,4 +1,4 @@
-# 2026-08-03: Models And Project Structure Walkthrough
+# 2026-08-03/04: Models And Project Structure Walkthrough
 
 ## Purpose Of This Note
 
