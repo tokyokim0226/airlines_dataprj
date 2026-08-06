@@ -25,6 +25,9 @@ data/raw/
 data/processed/
 data/*.db
 
+# private planning / progress notes
+progress_check/
+
 # notebooks
 .ipynb_checkpoints/
 
