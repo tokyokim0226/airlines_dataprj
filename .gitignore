@@ -27,6 +27,8 @@ data/*.db
 
 # private planning / progress notes
 progress_check/
+learning_notes/
+codex_handoff_records/
 
 # notebooks
 .ipynb_checkpoints/
