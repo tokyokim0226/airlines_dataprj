@@ -4,27 +4,31 @@
 
 This project is a cost-aware longitudinal flight-market data pipeline.
 
-For now, it should systematically sample twelve directional routes between Seoul, London, Kuala Lumpur, and Tokyo at fixed travel cohorts and predefined booking lead times, preserving historical fare observations so seasonality, route behavior, and booking-window patterns can be analyzed over time.
+For Phase 1, it should systematically sample twelve directional routes between Seoul, London, Kuala Lumpur, and Tokyo using fixed travel cohorts and predefined booking lead-time checkpoints. The goal is to preserve historical fare observations so route seasonality, booking-window behavior, directionality, and cabin-class differences can be analyzed over time.
 
-The immediate objective is:
+This is not a flight-booking app, dashboard-first project, or broad destination-discovery tool.
 
-```text
-build a reliable controlled dataset
-```
-
-Do not treat this as a flight-booking app, a dashboard project, or a broad destination-discovery tool.
-
-The one question to focus on now is:
+Single current implementation focus:
 
 ```text
-How does one baseline TripCohort get created, scheduled, searched, stored, and accumulated over time?
+Make one baseline TripCohort lifecycle concrete:
+Route -> TripCohort -> scheduled checkpoint -> search run -> raw response -> normalized offers -> historical observations -> quota count
 ```
 
 Do not jump ahead.
 
+Detailed rationale lives in:
+
+- `docs/PROJECT_DESIGN.md`
+- `docs/DATA_COLLECTION_STRATEGY.md`
+- `docs/ANALYTICS_ENGINEERING_PLAN.md`
+- `progress_check/CURRENT_STATE.md`
+
+If `AGENTS.md` and a detailed document conflict, `AGENTS.md` is the active direction.
+
 ## Working Style
 
-Do not rush ahead and build the whole system at once.
+Do not build the whole system at once.
 
 Before implementing a new phase, explain:
 
@@ -36,87 +40,22 @@ Before implementing a new phase, explain:
 5. then implement it
 ```
 
-For major design decisions, stop before implementation and explain options, recommendation, and impact.
-
-Major decisions include:
+For major design decisions, stop before implementation and explain options, recommendation, and impact. Major decisions include:
 
 - baseline monthly departure-date rule
 - whether London includes STN/LTN
 - raw JSON storage strategy
 - database schema changes
 - scheduler implementation
+- SerpAPI quota behavior for economy + business class
 - dbt introduction
 - date-exploration expansion
 
 Minor implementation details do not need approval.
 
-## Project Goal
+At the end of meaningful development sessions, update `progress_check/CURRENT_STATE.md`.
 
-We are building a longitudinal flight-market analytics dataset.
-
-The purpose is to collect flight prices over time in a systematic way so that, after months or years of accumulation, we can investigate questions such as:
-
-- When is it cheapest to travel on a route?
-- How far in advance is it usually cheapest to book?
-- Is booking 3 months ahead better than 1 month ahead?
-- Is booking 6 months ahead better or worse than 3 months ahead?
-- How much do prices rise inside the final 4 / 3 / 2 / 1 weeks?
-- Which months are expensive or cheap?
-- Does booking behavior differ between routes?
-- Does London -> Seoul behave differently from Seoul -> London?
-- How much more expensive are holiday periods such as Lunar New Year or Christmas?
-- If travel dates are fixed, how early should tickets ideally be bought based on our own historical data?
-
-Google Flights tells us what is available now. This system preserves what was available at many different points in time and turns those observations into reusable historical datasets.
-
-## Portfolio Goal
-
-This is an analytics-engineering portfolio project.
-
-The finished project should eventually demonstrate:
-
-- external API ingestion
-- cost-aware data collection
-- append-only historical data
-- raw-data preservation
-- data modeling
-- clear analytical grain
-- SQL transformations
-- dbt, after ingestion is stable
-- staging / intermediate / mart layers
-- tests and data quality
-- documentation
-- automated collection
-- CI
-- analytical outputs that answer real questions
-
-Do not turn this into a project whose main achievement is:
-
-```text
-Python script -> API -> chart
-```
-
-Target analytics-engineering story:
-
-```text
-API
--> raw observations
--> clean staging models
--> reusable intermediate models
--> analytical marts
--> questions about seasonality and booking lead time
-```
-
-## Current Scope
-
-For Phase 1, do not implement destination exploration.
-
-Do not use:
-
-- Google Travel Explore
-- Google Flights Deals
-- random holiday destination search
-- where-should-I-go recommendations
+## Phase 1 Scope
 
 Use only:
 
@@ -124,28 +63,23 @@ Use only:
 SerpAPI engine = google_flights
 ```
 
-The first stable version studies a fixed family of cities:
+Do not implement yet:
 
-```text
-Seoul
-London
-Kuala Lumpur
-Tokyo
-```
+- Google Travel Explore
+- Google Flights Deals
+- random destination exploration
+- where-should-I-go recommendations
+- machine-learning fare prediction
+- dynamic airfare alerts
+- Airflow, Kafka, Spark, Hadoop, AWS Glue
+- complex frontend or mobile app
+- dbt before ingestion is stable
 
-The focus is:
-
-```text
-travel timing
-+
-booking timing
-+
-route differences
-```
+First build a trustworthy, automated longitudinal dataset.
 
 ## Fixed City Groups
 
-Use these initial city-airport groups.
+Initial city-airport groups:
 
 ```text
 Seoul: ICN, GMP
@@ -156,39 +90,34 @@ Kuala Lumpur: KUL
 
 London may later expand to STN/LTN, but do not change the initial scope without discussion.
 
-API queries may use multiple airports for a city. When storing returned itineraries, preserve the actual departure and arrival airports so city-level and airport-level analysis are both possible later.
+API queries may use multiple airports for a city. Stored itinerary records must preserve actual returned departure and arrival airports.
 
 ## Fixed Directional Routes
 
-With four cities there are six unordered city pairs. Direction may matter, so treat them as twelve directional markets/routes:
+Treat the four cities as twelve directional routes:
 
 ```text
 Seoul -> London
 London -> Seoul
-
 Seoul -> Kuala Lumpur
 Kuala Lumpur -> Seoul
-
 Seoul -> Tokyo
 Tokyo -> Seoul
-
 London -> Kuala Lumpur
 Kuala Lumpur -> London
-
 London -> Tokyo
 Tokyo -> London
-
 Kuala Lumpur -> Tokyo
 Tokyo -> Kuala Lumpur
 ```
 
-These twelve directional routes are the permanent analytical backbone for the first stable version.
+These routes are the Phase 1 analytical backbone.
 
 ## Core Domain Concepts
 
 ### Route
 
-A route represents one directional city market.
+One directional city market.
 
 Conceptual fields:
 
@@ -205,19 +134,7 @@ Keep city-level and airport-level information separate.
 
 ### TripCohort
 
-A `TripCohort` is one deliberately selected future round-trip journey that will be observed repeatedly.
-
-Example:
-
-```text
-route: Seoul -> London
-departure_date: 2027-02-10
-return_date: 2027-02-17
-trip_duration_days: 7
-cohort_type: baseline
-```
-
-The cohort remains the same. Only the observation date changes.
+One fixed round-trip travel period monitored repeatedly over time.
 
 Conceptual fields:
 
@@ -241,11 +158,13 @@ event
 personal
 ```
 
-Do not build a broader abstract planning framework before `TripCohort` is understood and working.
+For baseline cohorts, Phase 1 uses a controlled 7-day trip duration.
+
+A `TripCohort` represents route and travel dates. It does not represent cabin class by itself.
 
 ### SearchRun
 
-A search run is one API request executed at one point in time.
+One provider API request executed at one point in time.
 
 It should eventually record:
 
@@ -253,6 +172,7 @@ It should eventually record:
 search_run_id
 cohort_id
 scheduled_lead_time_days
+travel_class
 observed_at
 provider
 request_parameters
@@ -261,11 +181,11 @@ quota_cost
 raw_response_reference
 ```
 
-### Flight Offer Observation
+### FlightOffer / PriceObservation
 
-A flight offer observation is one itinerary returned by one search run.
+A returned itinerary and its observed price.
 
-Preserve useful returned fields such as:
+Stored observations must preserve:
 
 ```text
 actual origin airport
@@ -278,87 +198,71 @@ number of stops
 duration
 price
 currency
+travel_class
 search_run_id
 ```
 
-Do not assume the exact provider schema. Build parsing from real saved SerpAPI fixtures.
+Append-only rule:
 
-## Controlled Baseline Dataset
+```text
+Every collection creates new historical observations.
+Old observations are never overwritten.
+```
 
-For the first baseline dataset:
+## Economy And Business Class
+
+The project must support both:
+
+```text
+economy
+business
+```
+
+This is a Phase 1 requirement, not a future afterthought.
+
+`travel_class` must be explicit on searches and observations so economy and business prices are never aggregated together accidentally.
+
+Before changing quota assumptions or schedules, explain actual SerpAPI behavior and quota implications. If economy and business require separate API calls, the previous baseline usage estimate may change substantially. Do not silently double planned API usage.
+
+See `docs/DATA_COLLECTION_STRATEGY.md` for the collection-design rationale.
+
+## Controlled Baseline Rules
+
+Phase 1 baseline:
 
 ```text
 trip duration = 7 days
+1 baseline cohort per route per calendar month
 ```
 
-Why: comparisons are cleaner when route/date observations use the same methodology, same trip duration, same lead-time checkpoints, and systematic departure-date selection.
-
-Later, 14-day or other durations may be added as separate cohorts. Do not mix them into the baseline until the first system is stable.
-
-## Baseline Departure Cohorts
-
-For each directional route, create:
+The monthly baseline departure-date selection rule is unresolved. A possible rule is:
 
 ```text
-1 baseline departure cohort per calendar month
+second Tuesday of every month -> return exactly seven days later
 ```
 
-That means each route gets twelve baseline cohorts per year.
-
-Dates must be selected using a systematic calendar rule, not manually chosen because they look cheap.
-
-Possible rule:
-
-```text
-second Tuesday of every month
--> return exactly seven days later
-```
-
-Do not lock this rule into code until weekday bias has been discussed and approved.
-
-The principle is that the date-selection rule should be consistent and reproducible.
+Do not lock this into code until weekday bias has been discussed and approved.
 
 ## Booking Lead-Time Checkpoints
 
-Each baseline cohort should be observed at these approximate lead times:
+Each baseline cohort should be observed at:
 
 ```text
-180 days before departure
-120 days
-90 days
-60 days
-28 days
-21 days
-14 days
-7 days
+180, 120, 90, 60, 28, 21, 14, 7 days before departure
 ```
 
-These support questions such as:
-
-- Is 3 months ahead cheaper than 1 month?
-- What happens between 4 weeks and 1 week?
-- Is buying 6 months ahead unnecessarily early?
-
-Each scheduled cohort observation should be identifiable by something like:
+Each scheduled observation should be identifiable by:
 
 ```text
-cohort_id
-lead_time_days
+cohort_id + scheduled_lead_time_days + travel_class
 ```
 
-This lets the system know, for example, that the 90-day observation has already completed and prevents accidental re-execution.
+This prevents accidental duplicate execution of the same checkpoint/class.
 
-For every actual observation derive:
-
-```text
-days_before_departure = departure_date - observed_at
-```
-
-If useful, preserve both:
+For every actual observation, derive:
 
 ```text
-scheduled_lead_time_days
-actual_days_before_departure
+actual_days_before_departure = departure_date - observed_at
 ```
 
 ## Scheduler Direction
@@ -368,56 +272,51 @@ The scheduler can run daily without searching daily.
 Daily execution should ask:
 
 ```text
-Which observations are due today?
+Which cohort checkpoints are due today, for which travel classes?
 ```
 
-If no cohort is at a checkpoint:
+If nothing is due, perform 0 API searches.
+
+Persist executed checkpoints so reruns do not duplicate observations unless explicitly intended.
+
+## API Quota Constraint
+
+Assume:
 
 ```text
-0 API searches
+250 successful searches per month
 ```
 
-If two cohorts reach checkpoints:
+Persist enough information to calculate:
 
 ```text
-2 API searches
+searches used this month
+searches remaining
+searches by route
+searches by cohort type
+searches by lead-time checkpoint
+searches by travel_class
 ```
 
-Preferred logic:
+The application must refuse to exceed the configured hard limit.
+
+The previous rough estimate for economy-only baseline sampling was:
 
 ```text
-cohort departure date
-+
-configured lead-time checkpoints
-=
-expected observation dates
+12 routes * 8 observations per cohort lifecycle ~= 96 searches/month average
 ```
 
-Persist executed observations so reruns do not accidentally duplicate the same scheduled checkpoint unless explicitly intended.
+This estimate must be recalculated before supporting both economy and business if they require separate SerpAPI requests.
 
-## API Strategy
+Do not intentionally spend all 250 searches from the beginning.
 
-Use only SerpAPI `google_flights` for Phase 1.
+## Raw Responses And Fixtures
 
-Each API call should represent:
+Every successful live provider response must be recoverable.
 
-```text
-one directional city route
-+
-one fixed departure date
-+
-one fixed return date
-+
-economy
-+
-round trip
-```
+Raw response storage must exist before live data collection.
 
-One API call may return many itineraries. Store relevant returned offers.
-
-Do not develop parsers using repeated paid/live requests. Use fixture-first development.
-
-Workflow:
+Use fixture-first SerpAPI development:
 
 ```text
 1. obtain representative real response fixture
@@ -430,212 +329,20 @@ Workflow:
 
 Do not fabricate provider JSON fields.
 
-## Raw Responses
-
-Every successful live response must be recoverable.
-
-Reasons:
-
-- parser bugs can be corrected later
-- normalized tables can be rebuilt
-- API schema changes can be investigated
-- API quota does not need to be spent again
-- debugging is easier
-- data lineage is clearer
-
-Implementation can begin with either SQLite text/JSON storage or local raw JSON files referenced by search runs. Choose the simplest reliable approach, but discuss the decision before implementation.
-
-## API Quota
-
-Assume:
-
-```text
-250 successful searches per month
-```
-
-The project must persist enough information to calculate:
-
-```text
-searches used this month
-searches remaining
-searches by route
-searches by cohort type
-searches by lead-time checkpoint
-```
-
-The application must refuse to exceed the configured hard limit.
-
-Approximate baseline steady-state workload:
-
-```text
-12 directional routes * 8 observations per cohort lifecycle
-~= 96 searches/month average
-```
-
-Do not interpret this as 96 searches at cohort creation. Searches are distributed over time.
-
-Do not intentionally spend all 250 searches from the beginning.
-
-## Cohort Types
-
-### Baseline
-
-Systematically generated.
-
-Purpose:
-
-```text
-general seasonality
-route comparison
-booking-window analysis
-```
-
-### Event
-
-Meaningful recurring period, such as:
-
-```text
-Lunar New Year
-Christmas
-New Year
-summer holiday
-Chuseok
-Golden Week
-```
-
-Purpose:
-
-```text
-understand special-period behavior
-```
-
-Use the same observation mechanism initially unless later configured differently.
-
-### Personal
-
-A real trip someone is considering, such as family visits, return trips, administrative trips, or holidays.
-
-Purpose:
-
-```text
-make the project genuinely useful while feeding the same historical data infrastructure
-```
-
-## Analytical Grain
-
-Make row grain explicit.
-
-```text
-SearchRun:
-1 row = one API request executed at one point in time
-
-Flight Offer Observation:
-1 row = one itinerary returned by one search run
-
-TripCohort:
-1 row = one fixed round-trip travel period being monitored
-
-Future Booking Window Mart:
-1 row = route * travel-period grouping * booking-window bucket
-```
-
-## Analytics Engineering Evolution
-
-Do not add dbt before ingestion is stable.
-
-Future target direction:
-
-```text
-SerpAPI
--> raw_search_runs / raw_responses / raw_offers
--> dbt staging
--> dbt intermediate
--> dbt marts
--> analysis / dashboard
-```
-
-Possible dbt structure later:
-
-```text
-models/staging/stg_search_runs.sql
-models/staging/stg_flight_offers.sql
-models/staging/stg_routes.sql
-models/staging/stg_trip_cohorts.sql
-models/intermediate/int_flight_observations.sql
-models/intermediate/int_booking_windows.sql
-models/marts/mart_route_prices.sql
-models/marts/mart_booking_windows.sql
-models/marts/mart_seasonality.sql
-```
-
-This is future work, not the immediate next coding task.
-
-## Existing Code
-
-Preserve useful existing concepts:
-
-```text
-FlightOffer
-SearchRun
-PriceObservation
-mock provider
-SQLite
-collector
-analysis
-tests
-```
-
-Keep the append-only rule:
-
-```text
-every collection creates new historical observations
-old observations are never overwritten
-```
-
-Do not restart the repository.
-
-Do not perform a large refactor merely because this document introduces new terminology.
-
-Extend gradually.
-
-## What Not To Build Yet
-
-Do not implement these in Phase 1:
-
-- random destination exploration
-- Google Travel Explore
-- Google Flights Deals
-- where-should-I-holiday recommendations
-- machine-learning fare prediction
-- dynamic airfare alerts
-- Airflow
-- Kafka
-- Spark
-- Hadoop
-- AWS Glue
-- complex frontend
-- mobile app
-- dbt before ingestion is stable
-
-Do not add technology for CV appearance. First build a trustworthy, automated longitudinal dataset.
+Discuss raw storage strategy before implementation: SQLite text/JSON vs local JSON files referenced by search runs.
 
 ## Immediate Implementation Order
 
-### Step 1 - Inspect Existing Code
+1. Inspect existing code and tests.
+   - `models.py`
+   - `database.py`
+   - `collector.py`
+   - `mock_provider.py`
+   - `analysis.py`
+   - `cli.py`
+   - `tests/`
 
-Inspect:
-
-```text
-models.py
-database.py
-collector.py
-mock_provider.py
-analysis.py
-cli.py
-tests/
-```
-
-Before changing anything, summarize:
+2. Before changing code, summarize:
 
 ```text
 what can stay
@@ -643,122 +350,45 @@ what must change
 what should be added
 ```
 
-Do not refactor yet.
+3. Implement fixed `Route` configuration with validation and tests.
 
-### Step 2 - Implement Route Configuration
+4. Implement `TripCohort` with validation and tests.
 
-Represent the twelve fixed directional routes.
+5. Discuss and approve the baseline monthly date rule.
 
-Add validation and tests.
-
-### Step 3 - Implement TripCohort
-
-Support:
-
-```text
-baseline
-event
-personal
-```
-
-Add validation and tests.
-
-### Step 4 - Decide And Implement Baseline Date Rule
-
-Do not choose the rule silently.
-
-Before coding, present the proposed rule and implications.
-
-Once approved, create a generator for monthly baseline cohorts.
-
-### Step 5 - Implement Checkpoint Scheduling
-
-Given a cohort departure date, determine due observations for:
+6. Implement checkpoint scheduling for:
 
 ```text
 180, 120, 90, 60, 28, 21, 14, 7
 ```
 
-Add tests.
+7. Persist routes and cohorts in SQLite.
 
-### Step 6 - Persist Routes And Cohorts
+8. Extend `SearchRun` to connect to cohort, scheduled checkpoint, actual observation time, travel class, quota cost, and status.
 
-Extend SQLite.
+9. Implement raw response storage.
 
-Do not migrate away from SQLite yet.
+10. Add a real saved Google Flights fixture.
 
-### Step 7 - Extend SearchRun
+11. Implement Google Flights parser.
 
-Connect every executed search to:
+12. Add live SerpAPI client only after parser tests work.
 
-```text
-cohort
-scheduled checkpoint
-actual observation time
-quota cost
-status
-```
+13. Execute one controlled live search.
 
-### Step 8 - Implement Raw Response Storage
+14. Implement local daily due-check runner.
 
-Do this before live data collection.
+15. Automate only after the local runner is reliable.
 
-### Step 9 - Add A Real Saved Google Flights Fixture
+## First Real Milestone
 
-Do not fabricate provider JSON.
-
-### Step 10 - Implement Google Flights Parser
-
-Parse fixture into existing or updated domain records.
-
-### Step 11 - Add Live SerpAPI Client
-
-Only after parser tests work.
-
-### Step 12 - Execute One Controlled Live Search
-
-Use one route and one cohort.
-
-Verify:
-
-```text
-search run stored
-raw response stored
-offers stored
-quota recorded
-```
-
-### Step 13 - Implement Daily Due-Check Runner
-
-It should:
-
-```text
-load active cohorts
-find due checkpoints
-check quota
-run required searches
-store results
-exit
-```
-
-### Step 14 - Automate
-
-Only after the local daily runner is reliable.
-
-## Milestones
-
-### First Real Milestone
-
-```text
-one cohort successfully moves through the system
-```
-
-Example:
+One cohort successfully moves through the system:
 
 ```text
 Route: Seoul -> London
 Cohort: Feb 2027 baseline
 Checkpoint: 120 days
+Travel class: economy or business
 -> scheduler recognizes it is due
 -> SerpAPI Google Flights request
 -> raw JSON stored
@@ -770,45 +400,7 @@ Checkpoint: 120 days
 
 Do not prioritize dashboard work before this exists.
 
-### Second Milestone
-
-```text
-all twelve routes can automatically maintain future baseline cohorts
-```
-
-At this point, the system can begin accumulating useful historical data.
-
-### Third Milestone
-
-After stable collection, introduce dbt and the analytics-engineering layer.
-
-First useful marts should answer:
-
-- How has price changed as departure approaches?
-- What is the observed cheapest booking window by route?
-- How does price differ by departure month?
-- How many observations support each conclusion?
-
-Always include observation counts.
-
-## Data Quality Expectations
-
-Eventually test:
-
-- `route_id` not null
-- `cohort_id` unique
-- `search_run_id` unique
-- `price >= 0`
-- `currency` not null
-- departure before return for round trips
-- scheduled lead time in accepted set
-- cohort type in accepted values
-- baseline trip duration = 7 days
-- actual days before departure >= 0
-
-Add tests as behavior becomes real.
-
-## Commands
+## Commands And Testing
 
 Use Python 3.12+ and `uv`.
 
@@ -820,6 +412,10 @@ uv run ruff check .
 uv run ruff format .
 uv run python -m flight_tracker.cli
 ```
+
+Add or update tests for meaningful behavior changes.
+
+Never require real credentials for the core test suite.
 
 Do not claim checks passed unless they were actually run.
 
@@ -837,29 +433,3 @@ Never commit:
 Use `.env.example` for required environment variable names only.
 
 Small representative fixtures are allowed when useful and safe.
-
-## Development Session Format
-
-At the end of each session, update a private progress note containing:
-
-```text
-WHAT WE BUILT
-- concrete behavior that now works
-
-WHY IT EXISTS
-- which project question it supports
-
-WHAT DATA IT CREATES
-- records / tables / fields
-
-WHAT I SHOULD UNDERSTAND
-- short explanation of important implementation concepts
-
-NEXT STEP
-- exactly one next implementation target
-
-DEFERRED
-- things intentionally not being built yet
-```
-
-This prevents the project from becoming opaque.
