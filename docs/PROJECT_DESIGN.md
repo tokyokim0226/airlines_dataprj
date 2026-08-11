@@ -83,7 +83,7 @@ Example cohort:
 Route: Seoul -> London
 Departure: 2027-02-10
 Return: 2027-02-17
-Trip duration: 7 days
+Trip pattern: second Friday -> following Sunday
 Cohort type: baseline
 ```
 
@@ -116,17 +116,17 @@ They support:
 - booking-window analysis
 - cabin-class comparison over consistent trip definitions
 
-For the controlled baseline, Phase 1 uses 7-day round trips.
+For the controlled baseline, Phase 1 uses second-Friday-to-following-Sunday round trips.
 
 ### Event Cohorts
 
 Event cohorts represent meaningful recurring periods, such as:
 
-- Lunar New Year
+- Lunar New Year / Chinese New Year
+- Chuseok
 - Christmas
 - New Year
 - summer holiday
-- Chuseok
 - Golden Week
 
 They answer questions such as:

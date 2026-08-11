@@ -158,7 +158,7 @@ event
 personal
 ```
 
-For baseline cohorts, Phase 1 uses a controlled 7-day trip duration.
+For baseline cohorts, Phase 1 uses the second-Friday-to-following-Sunday pattern.
 
 A `TripCohort` represents route and travel dates. It does not represent cabin class by itself.
 
@@ -231,17 +231,19 @@ See `docs/DATA_COLLECTION_STRATEGY.md` for the collection-design rationale.
 Phase 1 baseline:
 
 ```text
-trip duration = 7 days
+departure = second Friday of the month
+return = following Sunday
+trip duration in date math = 9 days
 1 baseline cohort per route per calendar month
 ```
 
-The monthly baseline departure-date selection rule is unresolved. A possible rule is:
+The monthly baseline departure-date rule is approved as:
 
 ```text
-second Tuesday of every month -> return exactly seven days later
+second Friday of every month -> return the following Sunday
 ```
 
-Do not lock this into code until weekday bias has been discussed and approved.
+This is intended to approximate a realistic working-person trip across two weekends. In date arithmetic, this is a 9-day duration even though it can feel like a 10-calendar-day trip.
 
 ## Booking Lead-Time Checkpoints
 

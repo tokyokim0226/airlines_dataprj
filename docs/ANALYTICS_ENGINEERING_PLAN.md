@@ -156,7 +156,7 @@ Eventually test:
 - departure before return for round trips
 - scheduled lead time in accepted set
 - cohort type in accepted values
-- baseline trip duration = 7 days
+- baseline trip pattern = second Friday to following Sunday
 - actual days before departure >= 0
 - route cities are in the configured city family
 - actual returned airports are valid airport codes

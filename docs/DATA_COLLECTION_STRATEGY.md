@@ -76,14 +76,16 @@ Tokyo -> Kuala Lumpur
 
 These are the permanent Phase 1 analytical backbone.
 
-## Controlled 7-Day Baseline Cohorts
+## Controlled Friday-To-Sunday Baseline Cohorts
 
 A `TripCohort` is one fixed round-trip travel period that is observed repeatedly over time.
 
 For the controlled baseline dataset:
 
 ```text
-trip duration = 7 days
+departure = second Friday of the month
+return = following Sunday
+trip duration in date math = 9 days
 ```
 
 Why:
@@ -97,7 +99,7 @@ systematic departure-date selection
 
 This creates cleaner comparisons across routes, months, and cabin classes.
 
-Later, other durations such as 14 days may be added as separate cohorts. Do not mix them into the baseline until the first system is stable.
+Later, other durations such as 7-day, 10-day, or 14-day variants may be added as separate cohorts. Do not mix them into the baseline until the first system is stable.
 
 ## Monthly Baseline Cohorts
 
@@ -111,14 +113,14 @@ Each route gets twelve baseline cohorts per year.
 
 Dates should be selected using a systematic calendar rule, not manually chosen because they look cheap.
 
-Possible rule:
+Approved rule:
 
 ```text
-second Tuesday of every month
--> return exactly seven days later
+second Friday of every month
+-> return the following Sunday
 ```
 
-This rule is unresolved. Do not lock it into code until weekday bias has been discussed and approved.
+This approximates a realistic trip for someone working a normal week: leave Friday or Friday night, include two weekends, and return Sunday. In Python date arithmetic this is a 9-day duration.
 
 ## Booking Lead-Time Checkpoints
 
@@ -305,11 +307,11 @@ Event and personal cohorts use the same observation mechanism as baseline cohort
 
 Examples:
 
-- Lunar New Year
+- Lunar New Year / Chinese New Year
+- Chuseok
 - Christmas
 - New Year
 - summer holiday
-- Chuseok
 - Golden Week
 
 Purpose:
