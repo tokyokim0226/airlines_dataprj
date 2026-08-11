@@ -342,6 +342,9 @@ After the fixed baseline is stable and quota usage is understood, possible expan
 - additional trip durations, such as 14 days
 - London airport expansion to STN/LTN
 - date exploration within the same fixed routes
+- flexible event/personal windows, such as departure any day in Feb 1-15 with trip length 7-10 days
 - additional cities
 
 Do not implement these until the baseline collection lifecycle is reliable.
+
+Flexible date-window search is a different data collection mode from fixed `TripCohort` tracking. It should be designed separately so it does not muddy the controlled baseline dataset.

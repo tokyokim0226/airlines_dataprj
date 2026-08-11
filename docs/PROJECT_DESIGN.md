@@ -169,9 +169,19 @@ Example future question:
 My parents can travel anytime in May. Which week currently looks cheapest?
 ```
 
-That is different from baseline collection.
+A more concrete future shape:
 
-Do not implement this until fixed baseline collection is stable and actual quota usage is understood.
+```text
+departure can be any day between Feb 1-15
+trip length can be 7-10 days
+find the cheapest valid combination
+```
+
+This would be useful for flexible event or personal travel, such as deciding the ideal several days to return during Lunar New Year.
+
+That is different from Phase 1 baseline collection, where a cohort has one fixed departure date and one fixed return date.
+
+Do not implement flexible date-window search until fixed baseline collection is stable and actual quota usage is understood.
 
 The controlled baseline remains unchanged even after exploration is added.
 
