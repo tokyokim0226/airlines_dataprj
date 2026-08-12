@@ -1,8 +1,71 @@
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
+from flight_tracker.cohorts import build_monthly_baseline_cohort
 from flight_tracker.database import FlightPriceDatabase
 from flight_tracker.models import FlightOffer, PriceObservation, SearchRun
+from flight_tracker.routes import Route
+from flight_tracker.scheduling import build_observation_schedule
+
+
+def test_database_stores_and_returns_routes(tmp_path) -> None:
+    database = FlightPriceDatabase(tmp_path / "prices.sqlite3")
+    database.initialize()
+    route = Route(
+        route_id="SEOUL_TO_LONDON",
+        origin_city="Seoul",
+        destination_city="London",
+        origin_airports=("ICN", "GMP"),
+        destination_airports=("LHR", "LGW"),
+    )
+
+    database.upsert_route(route)
+    database.upsert_route(route)
+
+    assert database.get_routes() == [route]
+
+
+def test_database_stores_and_returns_trip_cohorts(tmp_path) -> None:
+    database = FlightPriceDatabase(tmp_path / "prices.sqlite3")
+    database.initialize()
+    route = Route(
+        route_id="SEOUL_TO_LONDON",
+        origin_city="Seoul",
+        destination_city="London",
+        origin_airports=("ICN", "GMP"),
+        destination_airports=("LHR", "LGW"),
+    )
+    cohort = build_monthly_baseline_cohort(route, 2027, 2)
+
+    database.upsert_route(route)
+    database.upsert_trip_cohort(cohort)
+    database.upsert_trip_cohort(cohort)
+
+    assert database.get_trip_cohorts(route.route_id) == [cohort]
+
+
+def test_database_stores_and_returns_scheduled_observations(tmp_path) -> None:
+    database = FlightPriceDatabase(tmp_path / "prices.sqlite3")
+    database.initialize()
+    route = Route(
+        route_id="SEOUL_TO_LONDON",
+        origin_city="Seoul",
+        destination_city="London",
+        origin_airports=("ICN", "GMP"),
+        destination_airports=("LHR", "LGW"),
+    )
+    cohort = build_monthly_baseline_cohort(route, 2027, 2)
+    schedule = build_observation_schedule(cohort, travel_classes=("economy",))
+
+    database.upsert_route(route)
+    database.upsert_trip_cohort(cohort)
+    for observation in schedule:
+        database.upsert_scheduled_observation(observation)
+        database.upsert_scheduled_observation(observation)
+
+    stored_schedule = database.get_scheduled_observations(cohort.cohort_id)
+
+    assert stored_schedule == list(schedule)
 
 
 def test_database_returns_price_history_in_chronological_order(tmp_path) -> None:
