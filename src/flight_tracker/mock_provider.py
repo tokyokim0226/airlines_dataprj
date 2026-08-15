@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
+from typing import Any
 
 from flight_tracker.models import FlightOffer
+from flight_tracker.parser import parse_mock_flight_response
 from flight_tracker.validation import validate_travel_class
 
 
@@ -17,13 +19,13 @@ class MockFlightProvider:
         self._prices = prices or [Decimal("250.00"), Decimal("265.00")]
         self._search_count = 0
 
-    def search(
+    def raw_search(
         self,
         origin: str,
         destination: str,
         departure_date: date,
         travel_class: str = "economy",
-    ) -> list[FlightOffer]:
+    ) -> dict[str, Any]:
         validate_travel_class(travel_class)
 
         # Each search advances the price so repeated collection creates history.
@@ -36,17 +38,37 @@ class MockFlightProvider:
         )
         arrival_time = departure_time + timedelta(hours=3)
 
-        return [
-            FlightOffer(
-                origin=origin,
-                destination=destination,
-                departure_time=departure_time,
-                arrival_time=arrival_time,
-                price_amount=price,
-                currency="USD",
-                airline="Mock Air",
-                stops=0,
-                provider=self.name,
-                travel_class=travel_class,
-            )
-        ]
+        return {
+            "provider": self.name,
+            "query": {
+                "origin": origin,
+                "destination": destination,
+                "departure_date": departure_date.isoformat(),
+                "travel_class": travel_class,
+            },
+            "offers": [
+                {
+                    "origin": origin,
+                    "destination": destination,
+                    "departure_time": departure_time.isoformat(),
+                    "arrival_time": arrival_time.isoformat(),
+                    "price_amount": str(price),
+                    "currency": "USD",
+                    "airline": "Mock Air",
+                    "stops": 0,
+                    "travel_class": travel_class,
+                }
+            ],
+        }
+
+    def search(
+        self,
+        origin: str,
+        destination: str,
+        departure_date: date,
+        travel_class: str = "economy",
+    ) -> list[FlightOffer]:
+        raw_response = self.raw_search(
+            origin, destination, departure_date, travel_class
+        )
+        return parse_mock_flight_response(raw_response)

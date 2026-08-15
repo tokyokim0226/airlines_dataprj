@@ -6,7 +6,12 @@ from decimal import Decimal
 from pathlib import Path
 
 from flight_tracker.cohorts import TripCohort
-from flight_tracker.models import FlightOffer, PriceObservation, SearchRun
+from flight_tracker.models import (
+    FlightOffer,
+    PriceObservation,
+    RawProviderResponse,
+    SearchRun,
+)
 from flight_tracker.routes import Route
 from flight_tracker.scheduling import ScheduledObservation
 
@@ -75,6 +80,18 @@ class FlightPriceDatabase:
                     travel_class TEXT NOT NULL DEFAULT 'economy',
                     cohort_id TEXT,
                     scheduled_lead_time_days INTEGER
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS raw_provider_responses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    search_run_id INTEGER NOT NULL,
+                    provider TEXT NOT NULL,
+                    captured_at TEXT NOT NULL,
+                    response_text TEXT NOT NULL,
+                    FOREIGN KEY (search_run_id) REFERENCES search_runs (id)
                 )
                 """
             )
@@ -434,6 +451,71 @@ class FlightPriceDatabase:
             scheduled_lead_time_days=search_run.scheduled_lead_time_days,
         )
 
+    def insert_raw_provider_response(
+        self, raw_response: RawProviderResponse
+    ) -> RawProviderResponse:
+        with self._connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO raw_provider_responses (
+                    search_run_id,
+                    provider,
+                    captured_at,
+                    response_text
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    raw_response.search_run_id,
+                    raw_response.provider,
+                    raw_response.captured_at.isoformat(),
+                    raw_response.response_text,
+                ),
+            )
+
+        return RawProviderResponse(
+            id=cursor.lastrowid,
+            search_run_id=raw_response.search_run_id,
+            provider=raw_response.provider,
+            captured_at=raw_response.captured_at,
+            response_text=raw_response.response_text,
+        )
+
+    def get_raw_provider_responses(
+        self, search_run_id: int | None = None
+    ) -> list[RawProviderResponse]:
+        with self._connect() as connection:
+            if search_run_id is None:
+                rows = connection.execute(
+                    """
+                    SELECT
+                        id,
+                        search_run_id,
+                        provider,
+                        captured_at,
+                        response_text
+                    FROM raw_provider_responses
+                    ORDER BY captured_at ASC, id ASC
+                    """
+                ).fetchall()
+            else:
+                rows = connection.execute(
+                    """
+                    SELECT
+                        id,
+                        search_run_id,
+                        provider,
+                        captured_at,
+                        response_text
+                    FROM raw_provider_responses
+                    WHERE search_run_id = ?
+                    ORDER BY captured_at ASC, id ASC
+                    """,
+                    (search_run_id,),
+                ).fetchall()
+
+        return [self._row_to_raw_provider_response(row) for row in rows]
+
     def insert_price_observation(
         self, observation: PriceObservation
     ) -> PriceObservation:
@@ -610,6 +692,26 @@ class FlightPriceDatabase:
                 str(scheduled_observation_date)
             ),
             travel_class=str(travel_class),
+        )
+
+    @staticmethod
+    def _row_to_raw_provider_response(
+        row: sqlite3.Row | tuple[object, ...],
+    ) -> RawProviderResponse:
+        (
+            response_id,
+            search_run_id,
+            provider,
+            captured_at,
+            response_text,
+        ) = row
+
+        return RawProviderResponse(
+            id=int(response_id),
+            search_run_id=int(search_run_id),
+            provider=str(provider),
+            captured_at=datetime.fromisoformat(str(captured_at)),
+            response_text=str(response_text),
         )
 
     @staticmethod

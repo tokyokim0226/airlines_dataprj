@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, date, datetime
-from typing import Protocol
+from typing import Any, Protocol
 
 from flight_tracker.database import FlightPriceDatabase
-from flight_tracker.models import FlightOffer, PriceObservation, SearchRun
+from flight_tracker.models import (
+    FlightOffer,
+    PriceObservation,
+    RawProviderResponse,
+    SearchRun,
+)
+from flight_tracker.parser import parse_mock_flight_response
 from flight_tracker.routes import Route
 from flight_tracker.scheduling import ScheduledObservation
 
@@ -13,6 +20,14 @@ class FlightProvider(Protocol):
     """The small interface any flight data provider must follow."""
 
     name: str
+
+    def raw_search(
+        self,
+        origin: str,
+        destination: str,
+        departure_date: date,
+        travel_class: str = "economy",
+    ) -> dict[str, Any]: ...
 
     def search(
         self,
@@ -54,8 +69,20 @@ def collect_prices(
         )
     )
 
+    raw_response = provider.raw_search(
+        origin, destination, departure_date, travel_class
+    )
+    database.insert_raw_provider_response(
+        RawProviderResponse(
+            search_run_id=_require_search_run_id(search_run),
+            provider=provider.name,
+            captured_at=collected_at,
+            response_text=json.dumps(raw_response, sort_keys=True),
+        )
+    )
+
     observations: list[PriceObservation] = []
-    for offer in provider.search(origin, destination, departure_date, travel_class):
+    for offer in _parse_provider_response(provider.name, raw_response):
         # Wrap the provider's offer with the time we observed its price.
         observation = PriceObservation(
             offer=offer,
@@ -130,3 +157,18 @@ def _primary_airport_pair(route: Route) -> tuple[str, str]:
     # Minimal local prototype: one airport pair per city route.
     # Later we can expand to all airport combinations after checking API quota cost.
     return route.origin_airports[0], route.destination_airports[0]
+
+
+def _parse_provider_response(
+    provider_name: str,
+    raw_response: dict[str, Any],
+) -> list[FlightOffer]:
+    if provider_name == "mock":
+        return parse_mock_flight_response(raw_response)
+    raise ValueError(f"unsupported provider parser: {provider_name}")
+
+
+def _require_search_run_id(search_run: SearchRun) -> int:
+    if search_run.id is None:
+        raise ValueError("search_run id is required before storing raw response")
+    return search_run.id

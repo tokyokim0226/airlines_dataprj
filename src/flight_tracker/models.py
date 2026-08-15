@@ -99,3 +99,23 @@ class PriceObservation:
     def __post_init__(self) -> None:
         # The observation time is what lets us build price history over time.
         validate_aware_datetime(self.observed_at, "observed_at")
+
+
+@dataclass(frozen=True)
+class RawProviderResponse:
+    """The unmodified provider payload captured for one search run."""
+
+    search_run_id: int
+    provider: str
+    captured_at: datetime
+    response_text: str
+    id: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.search_run_id <= 0:
+            raise ValueError("search_run_id is required")
+        if not self.provider:
+            raise ValueError("provider is required")
+        if not self.response_text:
+            raise ValueError("response_text is required")
+        validate_aware_datetime(self.captured_at, "captured_at")

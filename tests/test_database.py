@@ -3,7 +3,12 @@ from decimal import Decimal
 
 from flight_tracker.cohorts import build_monthly_baseline_cohort
 from flight_tracker.database import FlightPriceDatabase
-from flight_tracker.models import FlightOffer, PriceObservation, SearchRun
+from flight_tracker.models import (
+    FlightOffer,
+    PriceObservation,
+    RawProviderResponse,
+    SearchRun,
+)
 from flight_tracker.routes import Route
 from flight_tracker.scheduling import build_observation_schedule
 
@@ -90,6 +95,37 @@ def test_database_returns_scheduled_observations_due_on_date(tmp_path) -> None:
     assert len(due) == 2
     assert {observation.travel_class for observation in due} == {"economy", "business"}
     assert {observation.scheduled_lead_time_days for observation in due} == {180}
+
+
+def test_database_stores_raw_provider_responses(tmp_path) -> None:
+    database = FlightPriceDatabase(tmp_path / "prices.sqlite3")
+    database.initialize()
+    search_run = database.insert_search_run(
+        SearchRun(
+            origin="ICN",
+            destination="LHR",
+            departure_date=date(2027, 2, 12),
+            provider="mock",
+            started_at=datetime(2026, 8, 16, 10, tzinfo=UTC),
+            travel_class="business",
+        )
+    )
+
+    stored = database.insert_raw_provider_response(
+        RawProviderResponse(
+            search_run_id=search_run.id or 0,
+            provider="mock",
+            captured_at=datetime(2026, 8, 16, 10, tzinfo=UTC),
+            response_text='{"provider":"mock","offers":[]}',
+        )
+    )
+
+    responses = database.get_raw_provider_responses(search_run.id)
+
+    assert stored.id is not None
+    assert len(responses) == 1
+    assert responses[0].response_text == '{"provider":"mock","offers":[]}'
+    assert responses[0].search_run_id == search_run.id
 
 
 def test_database_returns_price_history_in_chronological_order(tmp_path) -> None:

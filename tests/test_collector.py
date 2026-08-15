@@ -50,6 +50,13 @@ def test_collect_due_prices_collects_scheduled_observations(tmp_path) -> None:
         observation.offer.departure_time.date() for observation in observations
     } == {datetime(2027, 2, 12).date()}
 
+    raw_responses = database.get_raw_provider_responses()
+
+    assert len(raw_responses) == 2
+    assert all(
+        '"provider": "mock"' in response.response_text for response in raw_responses
+    )
+
 
 def test_collect_due_prices_is_append_only_when_run_repeatedly(tmp_path) -> None:
     database = FlightPriceDatabase(tmp_path / "prices.sqlite3")

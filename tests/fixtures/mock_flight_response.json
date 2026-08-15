@@ -1,0 +1,22 @@
+{
+  "provider": "mock",
+  "query": {
+    "origin": "ICN",
+    "destination": "LHR",
+    "departure_date": "2027-02-12",
+    "travel_class": "business"
+  },
+  "offers": [
+    {
+      "origin": "ICN",
+      "destination": "LHR",
+      "departure_time": "2027-02-12T09:00:00+00:00",
+      "arrival_time": "2027-02-12T12:00:00+00:00",
+      "price_amount": "1500.00",
+      "currency": "USD",
+      "airline": "Mock Air",
+      "stops": 0,
+      "travel_class": "business"
+    }
+  ]
+}

@@ -197,6 +197,7 @@ cohort_id + scheduled_lead_time_days + travel_class
 Checkpoint scheduling is now represented in code with scheduled observations identified by cohort, lead-time checkpoint, and travel class.
 The local seed workflow can now write Phase 1 routes, monthly baseline cohorts, and scheduled observations into SQLite before collection starts.
 The scheduled local collector can now collect mock prices only for observations due on a requested date.
+The local collector now stores raw mock provider responses in SQLite before normalizing offers.
 
 The program may run every day.
 
