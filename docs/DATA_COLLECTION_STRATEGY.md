@@ -97,7 +97,7 @@ same lead-time checkpoints
 systematic departure-date selection
 ```
 
-This creates cleaner comparisons across routes, months, and cabin classes.
+This creates cleaner comparisons across routes, months, and cabin classes. 
 
 Later, other durations such as 7-day, 10-day, or 14-day variants may be added as separate cohorts. Do not mix them into the baseline until the first system is stable.
 
