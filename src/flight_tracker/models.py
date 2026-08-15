@@ -10,6 +10,7 @@ from flight_tracker.validation import (
     validate_airport_code,
     validate_aware_datetime,
     validate_currency,
+    validate_travel_class,
 )
 
 
@@ -26,6 +27,7 @@ class FlightOffer:
     airline: str
     stops: int
     provider: str
+    travel_class: str = "economy"
 
     def __post_init__(self) -> None:
         # __post_init__ runs right after dataclass creation, so bad data fails early.
@@ -49,6 +51,7 @@ class FlightOffer:
             raise ValueError("provider is required")
 
         validate_currency(self.currency)
+        validate_travel_class(self.travel_class)
 
 
 @dataclass(frozen=True)
@@ -60,6 +63,9 @@ class SearchRun:
     departure_date: date
     provider: str
     started_at: datetime
+    travel_class: str = "economy"
+    cohort_id: str | None = None
+    scheduled_lead_time_days: int | None = None
     id: int | None = None
 
     def __post_init__(self) -> None:
@@ -70,7 +76,15 @@ class SearchRun:
             raise ValueError("origin and destination must be different")
         if not self.provider:
             raise ValueError("provider is required")
+        if self.cohort_id == "":
+            raise ValueError("cohort_id cannot be blank")
+        if (
+            self.scheduled_lead_time_days is not None
+            and self.scheduled_lead_time_days < 0
+        ):
+            raise ValueError("scheduled_lead_time_days cannot be negative")
         validate_aware_datetime(self.started_at, "started_at")
+        validate_travel_class(self.travel_class)
 
 
 @dataclass(frozen=True)

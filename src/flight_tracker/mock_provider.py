@@ -4,7 +4,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 
 from flight_tracker.models import FlightOffer
-
+from flight_tracker.validation import validate_travel_class
 
 
 class MockFlightProvider:
@@ -22,7 +22,10 @@ class MockFlightProvider:
         origin: str,
         destination: str,
         departure_date: date,
+        travel_class: str = "economy",
     ) -> list[FlightOffer]:
+        validate_travel_class(travel_class)
+
         # Each search advances the price so repeated collection creates history.
         price = self._prices[self._search_count % len(self._prices)]
         self._search_count += 1
@@ -44,5 +47,6 @@ class MockFlightProvider:
                 airline="Mock Air",
                 stops=0,
                 provider=self.name,
+                travel_class=travel_class,
             )
         ]

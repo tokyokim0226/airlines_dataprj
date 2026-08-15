@@ -71,7 +71,10 @@ class FlightPriceDatabase:
                     destination TEXT NOT NULL,
                     departure_date TEXT NOT NULL,
                     provider TEXT NOT NULL,
-                    started_at TEXT NOT NULL
+                    started_at TEXT NOT NULL,
+                    travel_class TEXT NOT NULL DEFAULT 'economy',
+                    cohort_id TEXT,
+                    scheduled_lead_time_days INTEGER
                 )
                 """
             )
@@ -92,9 +95,34 @@ class FlightPriceDatabase:
                     airline TEXT NOT NULL,
                     stops INTEGER NOT NULL,
                     provider TEXT NOT NULL,
+                    travel_class TEXT NOT NULL DEFAULT 'economy',
                     FOREIGN KEY (search_run_id) REFERENCES search_runs (id)
                 )
                 """
+            )
+            self._ensure_column(
+                connection,
+                table_name="search_runs",
+                column_name="travel_class",
+                column_definition="TEXT NOT NULL DEFAULT 'economy'",
+            )
+            self._ensure_column(
+                connection,
+                table_name="search_runs",
+                column_name="cohort_id",
+                column_definition="TEXT",
+            )
+            self._ensure_column(
+                connection,
+                table_name="search_runs",
+                column_name="scheduled_lead_time_days",
+                column_definition="INTEGER",
+            )
+            self._ensure_column(
+                connection,
+                table_name="price_observations",
+                column_name="travel_class",
+                column_definition="TEXT NOT NULL DEFAULT 'economy'",
             )
 
     def upsert_route(self, route: Route) -> Route:
@@ -128,6 +156,25 @@ class FlightPriceDatabase:
                 ),
             )
         return route
+
+    def get_route(self, route_id: str) -> Route | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    route_id,
+                    origin_city,
+                    destination_city,
+                    origin_airports,
+                    destination_airports,
+                    active
+                FROM routes
+                WHERE route_id = ?
+                """,
+                (route_id,),
+            ).fetchone()
+
+        return self._row_to_route(row) if row is not None else None
 
     def get_routes(self) -> list[Route]:
         with self._connect() as connection:
@@ -187,6 +234,28 @@ class FlightPriceDatabase:
                 ),
             )
         return cohort
+
+    def get_trip_cohort(self, cohort_id: str) -> TripCohort | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    cohort_id,
+                    route_id,
+                    cohort_type,
+                    departure_date,
+                    return_date,
+                    trip_duration_days,
+                    label,
+                    active,
+                    created_at
+                FROM trip_cohorts
+                WHERE cohort_id = ?
+                """,
+                (cohort_id,),
+            ).fetchone()
+
+        return self._row_to_trip_cohort(row) if row is not None else None
 
     def get_trip_cohorts(self, route_id: str | None = None) -> list[TripCohort]:
         with self._connect() as connection:
@@ -295,6 +364,35 @@ class FlightPriceDatabase:
 
         return [self._row_to_scheduled_observation(row) for row in rows]
 
+    def get_scheduled_observations_due_on(
+        self, check_date: date
+    ) -> list[ScheduledObservation]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    scheduled_observations.cohort_id,
+                    scheduled_observations.scheduled_lead_time_days,
+                    scheduled_observations.scheduled_observation_date,
+                    scheduled_observations.travel_class
+                FROM scheduled_observations
+                JOIN trip_cohorts
+                    ON trip_cohorts.cohort_id = scheduled_observations.cohort_id
+                JOIN routes
+                    ON routes.route_id = trip_cohorts.route_id
+                WHERE scheduled_observations.scheduled_observation_date = ?
+                    AND trip_cohorts.active = 1
+                    AND routes.active = 1
+                ORDER BY
+                    scheduled_observations.cohort_id ASC,
+                    scheduled_observations.travel_class ASC,
+                    scheduled_observations.scheduled_lead_time_days DESC
+                """,
+                (check_date.isoformat(),),
+            ).fetchall()
+
+        return [self._row_to_scheduled_observation(row) for row in rows]
+
     def insert_search_run(self, search_run: SearchRun) -> SearchRun:
         # Store the collection attempt first so observations can point back to it.
         with self._connect() as connection:
@@ -305,9 +403,12 @@ class FlightPriceDatabase:
                     destination,
                     departure_date,
                     provider,
-                    started_at
+                    started_at,
+                    travel_class,
+                    cohort_id,
+                    scheduled_lead_time_days
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     search_run.origin,
@@ -315,6 +416,9 @@ class FlightPriceDatabase:
                     search_run.departure_date.isoformat(),
                     search_run.provider,
                     search_run.started_at.isoformat(),
+                    search_run.travel_class,
+                    search_run.cohort_id,
+                    search_run.scheduled_lead_time_days,
                 ),
             )
 
@@ -325,6 +429,9 @@ class FlightPriceDatabase:
             departure_date=search_run.departure_date,
             provider=search_run.provider,
             started_at=search_run.started_at,
+            travel_class=search_run.travel_class,
+            cohort_id=search_run.cohort_id,
+            scheduled_lead_time_days=search_run.scheduled_lead_time_days,
         )
 
     def insert_price_observation(
@@ -349,9 +456,10 @@ class FlightPriceDatabase:
                     currency,
                     airline,
                     stops,
-                    provider
+                    provider,
+                    travel_class
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     observation.search_run_id,
@@ -365,6 +473,7 @@ class FlightPriceDatabase:
                     offer.airline,
                     offer.stops,
                     offer.provider,
+                    offer.travel_class,
                 ),
             )
 
@@ -402,7 +511,8 @@ class FlightPriceDatabase:
                     currency,
                     airline,
                     stops,
-                    provider
+                    provider,
+                    travel_class
                 FROM price_observations
                 WHERE origin = ?
                     AND destination = ?
@@ -419,6 +529,20 @@ class FlightPriceDatabase:
         # SQLite requires this setting per connection for foreign keys to work.
         connection.execute("PRAGMA foreign_keys = ON")
         return connection
+
+    @staticmethod
+    def _ensure_column(
+        connection: sqlite3.Connection,
+        table_name: str,
+        column_name: str,
+        column_definition: str,
+    ) -> None:
+        columns = connection.execute(f"PRAGMA table_info({table_name})").fetchall()
+        existing_column_names = {str(column[1]) for column in columns}
+        if column_name not in existing_column_names:
+            connection.execute(
+                f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}"
+            )
 
     @staticmethod
     def _row_to_route(row: sqlite3.Row | tuple[object, ...]) -> Route:
@@ -504,6 +628,7 @@ class FlightPriceDatabase:
             airline,
             stops,
             provider,
+            travel_class,
         ) = row
 
         offer = FlightOffer(
@@ -516,6 +641,7 @@ class FlightPriceDatabase:
             airline=str(airline),
             stops=int(stops),
             provider=str(provider),
+            travel_class=str(travel_class),
         )
 
         return PriceObservation(

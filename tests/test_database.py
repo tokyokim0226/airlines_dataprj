@@ -68,6 +68,30 @@ def test_database_stores_and_returns_scheduled_observations(tmp_path) -> None:
     assert stored_schedule == list(schedule)
 
 
+def test_database_returns_scheduled_observations_due_on_date(tmp_path) -> None:
+    database = FlightPriceDatabase(tmp_path / "prices.sqlite3")
+    database.initialize()
+    route = Route(
+        route_id="SEOUL_TO_LONDON",
+        origin_city="Seoul",
+        destination_city="London",
+        origin_airports=("ICN", "GMP"),
+        destination_airports=("LHR", "LGW"),
+    )
+    cohort = build_monthly_baseline_cohort(route, 2027, 2)
+
+    database.upsert_route(route)
+    database.upsert_trip_cohort(cohort)
+    for observation in build_observation_schedule(cohort):
+        database.upsert_scheduled_observation(observation)
+
+    due = database.get_scheduled_observations_due_on(date(2026, 8, 16))
+
+    assert len(due) == 2
+    assert {observation.travel_class for observation in due} == {"economy", "business"}
+    assert {observation.scheduled_lead_time_days for observation in due} == {180}
+
+
 def test_database_returns_price_history_in_chronological_order(tmp_path) -> None:
     database = FlightPriceDatabase(tmp_path / "prices.sqlite3")
     database.initialize()

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from flight_tracker.cohorts import TripCohort
+from flight_tracker.validation import validate_travel_class
 
 
 LEAD_TIME_CHECKPOINT_DAYS = (180, 120, 90, 60, 28, 21, 14, 7)
@@ -24,8 +25,7 @@ class ScheduledObservation:
             raise ValueError("cohort_id is required")
         if self.scheduled_lead_time_days not in LEAD_TIME_CHECKPOINT_DAYS:
             raise ValueError("scheduled_lead_time_days must be an accepted checkpoint")
-        if self.travel_class not in TRAVEL_CLASSES:
-            raise ValueError("travel_class must be economy or business")
+        validate_travel_class(self.travel_class)
 
     def is_due_on(self, check_date: date) -> bool:
         return self.scheduled_observation_date == check_date
@@ -39,8 +39,7 @@ def build_observation_schedule(
 
     observations: list[ScheduledObservation] = []
     for travel_class in travel_classes:
-        if travel_class not in TRAVEL_CLASSES:
-            raise ValueError("travel_class must be economy or business")
+        validate_travel_class(travel_class)
         for lead_time_days in LEAD_TIME_CHECKPOINT_DAYS:
             observations.append(
                 ScheduledObservation(

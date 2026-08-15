@@ -26,3 +26,16 @@ def test_mock_provider_cycles_prices() -> None:
     assert first.price_amount == Decimal("300.00")
     assert second.price_amount == Decimal("310.00")
     assert third.price_amount == Decimal("300.00")
+
+
+def test_mock_provider_records_requested_travel_class() -> None:
+    provider = MockFlightProvider(prices=[Decimal("900.00")])
+
+    offer = provider.search(
+        "LAX",
+        "JFK",
+        date(2026, 8, 1),
+        travel_class="business",
+    )[0]
+
+    assert offer.travel_class == "business"

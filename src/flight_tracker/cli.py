@@ -5,7 +5,7 @@ from datetime import date
 from pathlib import Path
 
 from flight_tracker.analysis import get_price_history
-from flight_tracker.collector import collect_prices
+from flight_tracker.collector import collect_due_prices, collect_prices
 from flight_tracker.database import FlightPriceDatabase
 from flight_tracker.mock_provider import MockFlightProvider
 from flight_tracker.seed import seed_baseline_schedule
@@ -25,6 +25,12 @@ def main() -> None:
     seed_parser.add_argument("--start-year", type=int, required=True)
     seed_parser.add_argument("--end-year", type=int, required=True)
 
+    collect_due_parser = subparsers.add_parser(
+        "collect-due",
+        help="Collect local mock prices for scheduled observations due on a date.",
+    )
+    collect_due_parser.add_argument("--date", default=date.today().isoformat())
+
     collect_parser = subparsers.add_parser(
         "collect",
         help="Collect one local mock route/date search and print its history.",
@@ -32,6 +38,11 @@ def main() -> None:
     collect_parser.add_argument("--origin", default="LAX")
     collect_parser.add_argument("--destination", default="JFK")
     collect_parser.add_argument("--departure-date", default=date.today().isoformat())
+    collect_parser.add_argument(
+        "--travel-class",
+        choices=("economy", "business"),
+        default="economy",
+    )
 
     args = parser.parse_args()
 
@@ -52,8 +63,19 @@ def main() -> None:
         )
         return
 
-    departure_date = date.fromisoformat(args.departure_date)
     provider = MockFlightProvider()
+
+    if args.command == "collect-due":
+        due_date = date.fromisoformat(args.date)
+        observations = collect_due_prices(
+            provider=provider,
+            database=database,
+            due_date=due_date,
+        )
+        print(f"Collected {len(observations)} price observations for {due_date}.")
+        return
+
+    departure_date = date.fromisoformat(args.departure_date)
 
     collect_prices(
         provider=provider,
@@ -61,6 +83,7 @@ def main() -> None:
         origin=args.origin,
         destination=args.destination,
         departure_date=departure_date,
+        travel_class=args.travel_class,
     )
     history = get_price_history(database, args.origin, args.destination, departure_date)
 
@@ -71,7 +94,8 @@ def main() -> None:
             f"{observation.observed_at.isoformat()} "
             f"{offer.origin}->{offer.destination} "
             f"{offer.departure_time.date().isoformat()} "
-            f"{offer.airline} {offer.price_amount} {offer.currency}"
+            f"{offer.airline} {offer.travel_class} "
+            f"{offer.price_amount} {offer.currency}"
         )
 
 

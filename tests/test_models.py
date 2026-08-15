@@ -58,3 +58,8 @@ def test_arrival_before_departure_is_rejected() -> None:
 def test_observed_at_must_be_timezone_aware() -> None:
     with pytest.raises(ValueError, match="observed_at"):
         PriceObservation(offer=make_offer(), observed_at=datetime(2026, 8, 1, 12))
+
+
+def test_invalid_travel_class_is_rejected() -> None:
+    with pytest.raises(ValueError, match="travel_class"):
+        make_offer(travel_class="first")

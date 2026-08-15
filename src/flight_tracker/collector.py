@@ -5,6 +5,8 @@ from typing import Protocol
 
 from flight_tracker.database import FlightPriceDatabase
 from flight_tracker.models import FlightOffer, PriceObservation, SearchRun
+from flight_tracker.routes import Route
+from flight_tracker.scheduling import ScheduledObservation
 
 
 class FlightProvider(Protocol):
@@ -17,8 +19,8 @@ class FlightProvider(Protocol):
         origin: str,
         destination: str,
         departure_date: date,
-    ) -> list[FlightOffer]:
-        ...
+        travel_class: str = "economy",
+    ) -> list[FlightOffer]: ...
 
 
 def collect_prices(
@@ -28,6 +30,9 @@ def collect_prices(
     destination: str,
     departure_date: date,
     observed_at: datetime | None = None,
+    travel_class: str = "economy",
+    cohort_id: str | None = None,
+    scheduled_lead_time_days: int | None = None,
 ) -> list[PriceObservation]:
     # Make the collector safe to call even before the database file exists.
     database.initialize()
@@ -43,11 +48,14 @@ def collect_prices(
             departure_date=departure_date,
             provider=provider.name,
             started_at=collected_at,
+            travel_class=travel_class,
+            cohort_id=cohort_id,
+            scheduled_lead_time_days=scheduled_lead_time_days,
         )
     )
 
     observations: list[PriceObservation] = []
-    for offer in provider.search(origin, destination, departure_date):
+    for offer in provider.search(origin, destination, departure_date, travel_class):
         # Wrap the provider's offer with the time we observed its price.
         observation = PriceObservation(
             offer=offer,
@@ -57,3 +65,68 @@ def collect_prices(
         observations.append(database.insert_price_observation(observation))
 
     return observations
+
+
+def collect_due_prices(
+    provider: FlightProvider,
+    database: FlightPriceDatabase,
+    due_date: date,
+    observed_at: datetime | None = None,
+) -> list[PriceObservation]:
+    """Collect mock prices for all scheduled observations due on one date."""
+
+    database.initialize()
+    collected_at = observed_at or datetime.now(UTC)
+    observations: list[PriceObservation] = []
+
+    for scheduled_observation in database.get_scheduled_observations_due_on(due_date):
+        cohort = database.get_trip_cohort(scheduled_observation.cohort_id)
+        if cohort is None:
+            raise ValueError(f"cohort not found: {scheduled_observation.cohort_id}")
+
+        route = database.get_route(cohort.route_id)
+        if route is None:
+            raise ValueError(f"route not found: {cohort.route_id}")
+
+        origin, destination = _primary_airport_pair(route)
+        observations.extend(
+            _collect_scheduled_observation(
+                provider=provider,
+                database=database,
+                scheduled_observation=scheduled_observation,
+                origin=origin,
+                destination=destination,
+                departure_date=cohort.departure_date,
+                observed_at=collected_at,
+            )
+        )
+
+    return observations
+
+
+def _collect_scheduled_observation(
+    provider: FlightProvider,
+    database: FlightPriceDatabase,
+    scheduled_observation: ScheduledObservation,
+    origin: str,
+    destination: str,
+    departure_date: date,
+    observed_at: datetime,
+) -> list[PriceObservation]:
+    return collect_prices(
+        provider=provider,
+        database=database,
+        origin=origin,
+        destination=destination,
+        departure_date=departure_date,
+        observed_at=observed_at,
+        travel_class=scheduled_observation.travel_class,
+        cohort_id=scheduled_observation.cohort_id,
+        scheduled_lead_time_days=scheduled_observation.scheduled_lead_time_days,
+    )
+
+
+def _primary_airport_pair(route: Route) -> tuple[str, str]:
+    # Minimal local prototype: one airport pair per city route.
+    # Later we can expand to all airport combinations after checking API quota cost.
+    return route.origin_airports[0], route.destination_airports[0]

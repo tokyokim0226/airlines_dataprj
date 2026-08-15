@@ -29,3 +29,9 @@ def validate_airport_group(values: tuple[str, ...], field_name: str) -> None:
         raise ValueError(f"{field_name} must include at least one airport")
     for airport_code in values:
         validate_airport_code(airport_code, field_name)
+
+
+def validate_travel_class(value: str) -> str:
+    if value not in {"economy", "business"}:
+        raise ValueError("travel_class must be economy or business")
+    return value
