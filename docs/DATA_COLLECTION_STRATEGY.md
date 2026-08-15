@@ -195,6 +195,7 @@ cohort_id + scheduled_lead_time_days + travel_class
 ## Daily Scheduler vs Non-Daily API Searching
 
 Checkpoint scheduling is now represented in code with scheduled observations identified by cohort, lead-time checkpoint, and travel class.
+The local seed workflow can now write Phase 1 routes, monthly baseline cohorts, and scheduled observations into SQLite before collection starts.
 
 The program may run every day.
 
