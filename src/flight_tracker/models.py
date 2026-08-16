@@ -1,4 +1,4 @@
-## validation and data modeling for flight offers, search runs, and price observations
+##  validation and data modeling for flight offers, search runs, and price observations
 
 from __future__ import annotations
 
