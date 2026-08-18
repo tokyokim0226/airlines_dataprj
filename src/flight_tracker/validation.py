@@ -33,5 +33,5 @@ def validate_airport_group(values: tuple[str, ...], field_name: str) -> None:
 
 def validate_travel_class(value: str) -> str:
     if value not in {"economy", "business"}:
-        raise ValueError("travel_class must be economy or business")
+        raise ValueError("travel_class must be either economy or business")
     return value
