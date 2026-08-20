@@ -198,6 +198,7 @@ Checkpoint scheduling is now represented in code with scheduled observations ide
 The local seed workflow can now write Phase 1 routes, monthly baseline cohorts, and scheduled observations into SQLite before collection starts.
 The scheduled local collector can now collect mock prices only for observations due on a requested date.
 The local collector now stores raw mock provider responses in SQLite before normalizing offers.
+A controlled one-request SerpAPI fixture CLI command now exists; it should be used once to save a real Google Flights fixture before parser implementation.
 
 The program may run every day.
 

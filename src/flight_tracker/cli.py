@@ -9,6 +9,13 @@ from flight_tracker.collector import collect_due_prices, collect_prices
 from flight_tracker.database import FlightPriceDatabase
 from flight_tracker.mock_provider import MockFlightProvider
 from flight_tracker.seed import seed_baseline_schedule
+from flight_tracker.serpapi_client import (
+    build_serpapi_google_flights_url,
+    default_google_flights_fixture_request,
+    fetch_serpapi_google_flights_fixture,
+    load_serpapi_api_key_from_environment,
+    save_serpapi_fixture,
+)
 
 
 def main() -> None:
@@ -30,6 +37,20 @@ def main() -> None:
         help="Collect local mock prices for scheduled observations due on a date.",
     )
     collect_due_parser.add_argument("--date", default=date.today().isoformat())
+
+    serpapi_fixture_parser = subparsers.add_parser(
+        "fetch-serpapi-fixture",
+        help="Fetch exactly one SerpAPI Google Flights fixture JSON response.",
+    )
+    serpapi_fixture_parser.add_argument(
+        "--output",
+        default="tests/fixtures/serpapi_google_flights_icn_lhr_2027_02_12_economy.json",
+    )
+    serpapi_fixture_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the request URL without calling SerpAPI.",
+    )
 
     collect_parser = subparsers.add_parser(
         "collect",
@@ -61,6 +82,18 @@ def main() -> None:
             f"{result.cohort_count} cohorts, "
             f"{result.scheduled_observation_count} scheduled observations."
         )
+        return
+
+    if args.command == "fetch-serpapi-fixture":
+        fixture_request = default_google_flights_fixture_request()
+        if args.dry_run:
+            print(build_serpapi_google_flights_url(fixture_request, "REDACTED"))
+            return
+
+        api_key = load_serpapi_api_key_from_environment()
+        payload = fetch_serpapi_google_flights_fixture(fixture_request, api_key)
+        output_path = save_serpapi_fixture(payload, Path(args.output))
+        print(f"Saved SerpAPI fixture to {output_path}.")
         return
 
     provider = MockFlightProvider()
