@@ -12,6 +12,8 @@ from urllib.request import urlopen
 
 SERPAPI_GOOGLE_FLIGHTS_ENDPOINT = "https://serpapi.com/search"
 SERPAPI_API_KEY_ENV_VAR = "SERPAPI_API_KEY"
+# SerpAPI expects numeric cabin-class codes, while the rest of our app uses
+# readable labels so analysis code never has to remember provider-specific numbers.
 SERPAPI_TRAVEL_CLASS_CODES = {
     "economy": "1",
     "business": "3",
@@ -40,6 +42,9 @@ class SerpApiFixtureRequest:
     def to_query_params(self, api_key: str) -> dict[str, str]:
         if not api_key:
             raise ValueError("api_key is required")
+
+        # Keep this request deliberately narrow: one round-trip Google Flights
+        # search used only to capture a real fixture for parser development.
         return {
             "engine": "google_flights",
             "type": "1",
@@ -58,6 +63,7 @@ class SerpApiFixtureRequest:
 def default_google_flights_fixture_request() -> SerpApiFixtureRequest:
     """Return the first controlled fixture search aligned with the baseline cohort."""
 
+    # Matches SEOUL_TO_LONDON_2027_02_BASELINE: second Friday to following Sunday.
     return SerpApiFixtureRequest(
         departure_id="ICN",
         arrival_id="LHR",
@@ -82,6 +88,8 @@ def fetch_serpapi_google_flights_fixture(
     """Execute one SerpAPI Google Flights request and return the decoded JSON."""
 
     url = build_serpapi_google_flights_url(fixture_request, api_key)
+    # This is intentionally not used by normal tests; it spends one SerpAPI request
+    # only when the user explicitly runs the fixture command.
     with urlopen(url, timeout=60) as response:  # noqa: S310 - controlled CLI API call
         response_body = response.read().decode("utf-8")
     payload = json.loads(response_body)
@@ -91,6 +99,7 @@ def fetch_serpapi_google_flights_fixture(
 
 
 def save_serpapi_fixture(payload: dict[str, Any], output_path: Path) -> Path:
+    # Save the raw JSON exactly as the parser fixture we will inspect next.
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     return output_path

@@ -38,6 +38,7 @@ def main() -> None:
     )
     collect_due_parser.add_argument("--date", default=date.today().isoformat())
 
+    # This command is for fixture capture only, not ongoing live collection.
     serpapi_fixture_parser = subparsers.add_parser(
         "fetch-serpapi-fixture",
         help="Fetch exactly one SerpAPI Google Flights fixture JSON response.",
@@ -87,6 +88,7 @@ def main() -> None:
     if args.command == "fetch-serpapi-fixture":
         fixture_request = default_google_flights_fixture_request()
         if args.dry_run:
+            # Dry-run proves the request shape without requiring or exposing a real key.
             print(build_serpapi_google_flights_url(fixture_request, "REDACTED"))
             return
 
