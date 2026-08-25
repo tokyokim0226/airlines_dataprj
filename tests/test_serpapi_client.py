@@ -15,6 +15,8 @@ from flight_tracker.serpapi_client import (
 def test_default_google_flights_fixture_request_matches_first_controlled_search() -> (
     None
 ):
+    # This test locks the one planned fixture request so we do not accidentally
+    # change the route/date/class and spend quota on the wrong search.
     request = default_google_flights_fixture_request()
 
     assert request.departure_id == "ICN"
@@ -27,6 +29,7 @@ def test_default_google_flights_fixture_request_matches_first_controlled_search(
 def test_serpapi_fixture_request_builds_google_flights_params() -> None:
     request = default_google_flights_fixture_request()
 
+    # This only builds parameters; it does not call SerpAPI or spend quota.
     params = request.to_query_params(api_key="secret")
 
     assert params["engine"] == "google_flights"
@@ -43,6 +46,7 @@ def test_serpapi_fixture_request_builds_google_flights_params() -> None:
 
 
 def test_build_serpapi_google_flights_url_includes_expected_parameters() -> None:
+    # URL construction is tested offline so the normal test suite stays free.
     url = build_serpapi_google_flights_url(
         default_google_flights_fixture_request(),
         api_key="secret",
@@ -77,6 +81,7 @@ def test_serpapi_fixture_request_rejects_return_before_outbound() -> None:
 
 
 def test_save_serpapi_fixture_writes_json(tmp_path) -> None:
+    # tmp_path writes to a temporary test folder, not the real fixture location.
     output_path = tmp_path / "fixtures" / "serpapi_fixture.json"
 
     saved_path = save_serpapi_fixture({"provider": "serpapi"}, output_path)
