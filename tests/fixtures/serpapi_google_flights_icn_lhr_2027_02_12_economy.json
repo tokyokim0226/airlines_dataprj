@@ -1,0 +1,984 @@
+{
+  "airports": [
+    {
+      "arrival": [
+        {
+          "airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport"
+          },
+          "city": "London",
+          "country": "United Kingdom",
+          "country_code": "GB",
+          "image": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRpN9RbtOSTDqKIPxWc_D6rdSysaWVh6d-NW7yz7yFXKRwh5RN5BpNIoXEwH1XVcFdLWqn6Sm8_Y_zmeg",
+          "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQYH83YXny8hR4M7k5BMFq4vUT6LNtVABQzgs2pg-hcpSZq3oMBOQK3xh591AAJv2Qx4uvFZUGqOVt4kuoCUOklISunmndJleOoSef_7QE"
+        }
+      ],
+      "departure": [
+        {
+          "airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport"
+          },
+          "city": "Seoul",
+          "country": "South Korea",
+          "country_code": "KR",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaeVwigGtqKE3WHRHlXdsogk_5ZpMVDw4LeWvbjUbezo_88sViW8V2x7FhQlWlIeoYrrNajK9btPW_8w",
+          "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxR7y_Va8i68eRlNWn4Omq2FHwgniQAe29Wb-NPNbNQCBFLvSQpBXOtZw5ZcbOagsrS83GufEhdkmk7mppoRZWU9enYxup7h1WZdBl7v4"
+        }
+      ]
+    },
+    {
+      "arrival": [
+        {
+          "airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport"
+          },
+          "city": "Seoul",
+          "country": "South Korea",
+          "country_code": "KR",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaeVwigGtqKE3WHRHlXdsogk_5ZpMVDw4LeWvbjUbezo_88sViW8V2x7FhQlWlIeoYrrNajK9btPW_8w",
+          "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxR7y_Va8i68eRlNWn4Omq2FHwgniQAe29Wb-NPNbNQCBFLvSQpBXOtZw5ZcbOagsrS83GufEhdkmk7mppoRZWU9enYxup7h1WZdBl7v4"
+        }
+      ],
+      "departure": [
+        {
+          "airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport"
+          },
+          "city": "London",
+          "country": "United Kingdom",
+          "country_code": "GB",
+          "image": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRpN9RbtOSTDqKIPxWc_D6rdSysaWVh6d-NW7yz7yFXKRwh5RN5BpNIoXEwH1XVcFdLWqn6Sm8_Y_zmeg",
+          "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQYH83YXny8hR4M7k5BMFq4vUT6LNtVABQzgs2pg-hcpSZq3oMBOQK3xh591AAJv2Qx4uvFZUGqOVt4kuoCUOklISunmndJleOoSef_7QE"
+        }
+      ]
+    }
+  ],
+  "best_flights": [
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+      "carbon_emissions": {
+        "difference_percent": -8,
+        "this_flight": 576000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ3hNU0RjeE9YeFdUREkwT0RRYUN3akR0UVFRQWhvRFZWTkVPQnh3dzdVRSIsW1siSUNOIiwiMjAyNy0wMi0xMiIsIk1VQyIsbnVsbCwiTEgiLCI3MTkiXSxbIk1VQyIsIjIwMjctMDItMTIiLCJMSFIiLG51bGwsIlZMIiwiMjQ4NCJdXV0=",
+      "flights": [
+        {
+          "airline": "Lufthansa",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+          "airplane": "Airbus A350",
+          "arrival_airport": {
+            "id": "MUC",
+            "name": "Munich International Airport",
+            "time": "2027-02-12 18:45"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 13:30"
+          },
+          "duration": 795,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 493 kg"
+          ],
+          "flight_number": "LH 719",
+          "legroom": "31 in",
+          "often_delayed_by_over_30_min": true,
+          "travel_class": "Economy"
+        },
+        {
+          "airline": "Lufthansa City Airlines",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/VL.png",
+          "airplane": "Airbus A320neo",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-12 21:00"
+          },
+          "departure_airport": {
+            "id": "MUC",
+            "name": "Munich International Airport",
+            "time": "2027-02-12 20:00"
+          },
+          "duration": 120,
+          "extensions": [
+            "Below average legroom (29 in)",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 82 kg"
+          ],
+          "flight_number": "VL 2484",
+          "legroom": "29 in",
+          "ticket_also_sold_by": [
+            "Lufthansa"
+          ],
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 75,
+          "id": "MUC",
+          "name": "Munich International Airport"
+        }
+      ],
+      "price": 724,
+      "total_duration": 990,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AY.png",
+      "carbon_emissions": {
+        "difference_percent": 5,
+        "this_flight": 659000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ3RCV1RReWZFRlpNVE16TVJvTENMM0lCQkFDR2dOVlUwUTRISEM5eUFRPSIsW1siSUNOIiwiMjAyNy0wMi0xMiIsIkhFTCIsbnVsbCwiQVkiLCI0MiJdLFsiSEVMIiwiMjAyNy0wMi0xMyIsIkxIUiIsbnVsbCwiQVkiLCIxMzMxIl1dXQ==",
+      "flights": [
+        {
+          "airline": "Finnair",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AY.png",
+          "airplane": "Airbus A350",
+          "arrival_airport": {
+            "id": "HEL",
+            "name": "Helsinki Airport",
+            "time": "2027-02-13 05:40"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 23:00"
+          },
+          "duration": 820,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat USB outlet",
+            "On-demand video",
+            "Carbon emissions estimate: 497 kg"
+          ],
+          "flight_number": "AY 42",
+          "legroom": "31 in",
+          "overnight": true,
+          "travel_class": "Economy"
+        },
+        {
+          "airline": "Finnair",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AY.png",
+          "airplane": "Airbus A350",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-13 09:10"
+          },
+          "departure_airport": {
+            "id": "HEL",
+            "name": "Helsinki Airport",
+            "time": "2027-02-13 07:50"
+          },
+          "duration": 200,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat USB outlet",
+            "On-demand video",
+            "Carbon emissions estimate: 161 kg"
+          ],
+          "flight_number": "AY 1331",
+          "legroom": "31 in",
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 130,
+          "id": "HEL",
+          "name": "Helsinki Airport"
+        }
+      ],
+      "price": 749,
+      "total_duration": 1150,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+      "carbon_emissions": {
+        "difference_percent": -12,
+        "this_flight": 551000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ1ZQV2pVeU1Sb0xDT2puQlJBQ0dnTlZVMFE0SEhEbzV3VT0iLFtbIklDTiIsIjIwMjctMDItMTIiLCJMSFIiLG51bGwsIk9aIiwiNTIxIl1dXQ==",
+      "flights": [
+        {
+          "airline": "Asiana Airlines",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+          "airplane": "Airbus A350",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-12 14:20"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 08:40"
+          },
+          "duration": 880,
+          "extensions": [
+            "Above average legroom (32 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 550 kg"
+          ],
+          "flight_number": "OZ 521",
+          "legroom": "32 in",
+          "travel_class": "Economy"
+        }
+      ],
+      "price": 953,
+      "total_duration": 880,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+      "carbon_emissions": {
+        "difference_percent": 10,
+        "this_flight": 689000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ1ZMUlRrd054b0xDTzMvQlJBQ0dnTlZVMFE0SEhEdC93VT0iLFtbIklDTiIsIjIwMjctMDItMTIiLCJMSFIiLG51bGwsIktFIiwiOTA3Il1dXQ==",
+      "flights": [
+        {
+          "airline": "Korean Air",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "airplane": "Boeing 777",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-12 16:30"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 10:40"
+          },
+          "duration": 890,
+          "extensions": [
+            "Above average legroom (33 in)",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 689 kg"
+          ],
+          "flight_number": "KE 907",
+          "legroom": "33 in",
+          "ticket_also_sold_by": [
+            "Virgin Atlantic"
+          ],
+          "travel_class": "Economy"
+        }
+      ],
+      "price": 983,
+      "total_duration": 890,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/VS.png",
+      "carbon_emissions": {
+        "difference_percent": -8,
+        "this_flight": 581000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ1ZXVXpJd09Sb0xDTzMvQlJBQ0dnTlZVMFE0SEhEdC93VT0iLFtbIklDTiIsIjIwMjctMDItMTIiLCJMSFIiLG51bGwsIlZTIiwiMjA5Il1dXQ==",
+      "flights": [
+        {
+          "airline": "Virgin Atlantic",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/VS.png",
+          "airplane": "Boeing 787",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-12 18:50"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 13:20"
+          },
+          "duration": 870,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 580 kg"
+          ],
+          "flight_number": "VS 209",
+          "legroom": "31 in",
+          "ticket_also_sold_by": [
+            "Korean Air"
+          ],
+          "travel_class": "Economy"
+        }
+      ],
+      "price": 983,
+      "total_duration": 870,
+      "type": "Round trip"
+    }
+  ],
+  "other_flights": [
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "carbon_emissions": {
+        "difference_percent": -8,
+        "this_flight": 581000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ3hNU0RjeE9YeE1TREkwT0RZYUN3akR0UVFRQWhvRFZWTkVPQnh3dzdVRSIsW1siSUNOIiwiMjAyNy0wMi0xMiIsIk1VQyIsbnVsbCwiTEgiLCI3MTkiXSxbIk1VQyIsIjIwMjctMDItMTIiLCJMSFIiLG51bGwsIkxIIiwiMjQ4NiJdXV0=",
+      "flights": [
+        {
+          "airline": "Lufthansa",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+          "airplane": "Airbus A350",
+          "arrival_airport": {
+            "id": "MUC",
+            "name": "Munich International Airport",
+            "time": "2027-02-12 18:45"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 13:30"
+          },
+          "duration": 795,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 493 kg"
+          ],
+          "flight_number": "LH 719",
+          "legroom": "31 in",
+          "often_delayed_by_over_30_min": true,
+          "travel_class": "Economy"
+        },
+        {
+          "airline": "Lufthansa",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+          "airplane": "Airbus A320neo",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-12 22:55"
+          },
+          "departure_airport": {
+            "id": "MUC",
+            "name": "Munich International Airport",
+            "time": "2027-02-12 21:55"
+          },
+          "duration": 120,
+          "extensions": [
+            "Below average legroom (29 in)",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 87 kg"
+          ],
+          "flight_number": "LH 2486",
+          "legroom": "29 in",
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 190,
+          "id": "MUC",
+          "name": "Munich International Airport"
+        }
+      ],
+      "price": 724,
+      "total_duration": 1105,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "carbon_emissions": {
+        "difference_percent": -11,
+        "this_flight": 559000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ3RNU0RjeE0zeE1TRGt5TUJvTENQNjlCQkFDR2dOVlUwUTRISEQrdlFRPSIsW1siSUNOIiwiMjAyNy0wMi0xMiIsIkZSQSIsbnVsbCwiTEgiLCI3MTMiXSxbIkZSQSIsIjIwMjctMDItMTIiLCJMSFIiLG51bGwsIkxIIiwiOTIwIl1dXQ==",
+      "flights": [
+        {
+          "airline": "Lufthansa",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+          "airplane": "Boeing 787",
+          "arrival_airport": {
+            "id": "FRA",
+            "name": "Frankfurt Airport",
+            "time": "2027-02-12 18:40"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 12:55"
+          },
+          "duration": 825,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat USB outlet",
+            "On-demand video",
+            "Carbon emissions estimate: 489 kg"
+          ],
+          "flight_number": "LH 713",
+          "legroom": "31 in",
+          "travel_class": "Economy"
+        },
+        {
+          "airline": "Lufthansa",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+          "airplane": "Airbus A320neo",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-12 20:50"
+          },
+          "departure_airport": {
+            "id": "FRA",
+            "name": "Frankfurt Airport",
+            "time": "2027-02-12 20:10"
+          },
+          "duration": 100,
+          "extensions": [
+            "Below average legroom (29 in)",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 69 kg"
+          ],
+          "flight_number": "LH 920",
+          "legroom": "29 in",
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 90,
+          "id": "FRA",
+          "name": "Frankfurt Airport"
+        }
+      ],
+      "price": 735,
+      "total_duration": 1015,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AY.png",
+      "carbon_emissions": {
+        "difference_percent": 9,
+        "this_flight": 688000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ3RCV1RReWZFRlpNVE16TnhvTENQekhCQkFDR2dOVlUwUTRISEQ4eHdRPSIsW1siSUNOIiwiMjAyNy0wMi0xMiIsIkhFTCIsbnVsbCwiQVkiLCI0MiJdLFsiSEVMIiwiMjAyNy0wMi0xMyIsIkxIUiIsbnVsbCwiQVkiLCIxMzM3Il1dXQ==",
+      "flights": [
+        {
+          "airline": "Finnair",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AY.png",
+          "airplane": "Airbus A350",
+          "arrival_airport": {
+            "id": "HEL",
+            "name": "Helsinki Airport",
+            "time": "2027-02-13 05:40"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 23:00"
+          },
+          "duration": 820,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat USB outlet",
+            "On-demand video",
+            "Carbon emissions estimate: 497 kg"
+          ],
+          "flight_number": "AY 42",
+          "legroom": "31 in",
+          "overnight": true,
+          "travel_class": "Economy"
+        },
+        {
+          "airline": "Finnair",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AY.png",
+          "airplane": "Airbus A321 (Sharklets)",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-13 17:00"
+          },
+          "departure_airport": {
+            "id": "HEL",
+            "name": "Helsinki Airport",
+            "time": "2027-02-13 16:00"
+          },
+          "duration": 180,
+          "extensions": [
+            "Average legroom (30 in)",
+            "Wi-Fi for a fee",
+            "Carbon emissions estimate: 189 kg"
+          ],
+          "flight_number": "AY 1337",
+          "legroom": "30 in",
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 620,
+          "id": "HEL",
+          "name": "Helsinki Airport"
+        }
+      ],
+      "price": 748,
+      "total_duration": 1620,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/EY.png",
+      "carbon_emissions": {
+        "difference_percent": 27,
+        "this_flight": 800000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ3BGV1RneU4zeEZXVFkxR2dzSXJ0WUVFQUlhQTFWVFJEZ2NjSzdXQkE9PSIsW1siSUNOIiwiMjAyNy0wMi0xMiIsIkFVSCIsbnVsbCwiRVkiLCI4MjciXSxbIkFVSCIsIjIwMjctMDItMTMiLCJMSFIiLG51bGwsIkVZIiwiNjUiXV1d",
+      "flights": [
+        {
+          "airline": "Etihad",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/EY.png",
+          "airplane": "Boeing 787",
+          "arrival_airport": {
+            "id": "AUH",
+            "name": "Zayed International Airport",
+            "time": "2027-02-13 05:20"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 23:45"
+          },
+          "duration": 635,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 389 kg"
+          ],
+          "flight_number": "EY 827",
+          "legroom": "31 in",
+          "overnight": true,
+          "travel_class": "Economy"
+        },
+        {
+          "airline": "Etihad",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/EY.png",
+          "airplane": "Airbus A380",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-13 14:30"
+          },
+          "departure_airport": {
+            "id": "AUH",
+            "name": "Zayed International Airport",
+            "time": "2027-02-13 10:40"
+          },
+          "duration": 470,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 410 kg"
+          ],
+          "flight_number": "EY 65",
+          "legroom": "31 in",
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 320,
+          "id": "AUH",
+          "name": "Zayed International Airport"
+        }
+      ],
+      "price": 766,
+      "total_duration": 1425,
+      "type": "Round trip"
+    },
+    {
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/EY.png",
+      "carbon_emissions": {
+        "difference_percent": 27,
+        "this_flight": 800000,
+        "typical_for_this_route": 629000
+      },
+      "departure_token": "WyJDalJJUlRoR1NXVm5XRVppYlVsQlFWQnNRVUZDUnkwdExTMHRMUzB0TFhaM1ltVnhORUZCUVVGQlIzRlFXVEJWUkRVMWNIZEJFZ3BGV1RneU4zeEZXVFl6R2dzSXkrd0VFQUlhQTFWVFJEZ2NjTXZzQkE9PSIsW1siSUNOIiwiMjAyNy0wMi0xMiIsIkFVSCIsbnVsbCwiRVkiLCI4MjciXSxbIkFVSCIsIjIwMjctMDItMTMiLCJMSFIiLG51bGwsIkVZIiwiNjMiXV1d",
+      "flights": [
+        {
+          "airline": "Etihad",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/EY.png",
+          "airplane": "Boeing 787",
+          "arrival_airport": {
+            "id": "AUH",
+            "name": "Zayed International Airport",
+            "time": "2027-02-13 05:20"
+          },
+          "departure_airport": {
+            "id": "ICN",
+            "name": "Incheon International Airport",
+            "time": "2027-02-12 23:45"
+          },
+          "duration": 635,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 389 kg"
+          ],
+          "flight_number": "EY 827",
+          "legroom": "31 in",
+          "overnight": true,
+          "travel_class": "Economy"
+        },
+        {
+          "airline": "Etihad",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/EY.png",
+          "airplane": "Airbus A380",
+          "arrival_airport": {
+            "id": "LHR",
+            "name": "Heathrow Airport",
+            "time": "2027-02-13 12:05"
+          },
+          "departure_airport": {
+            "id": "AUH",
+            "name": "Zayed International Airport",
+            "time": "2027-02-13 08:10"
+          },
+          "duration": 475,
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 410 kg"
+          ],
+          "flight_number": "EY 63",
+          "legroom": "31 in",
+          "often_delayed_by_over_30_min": true,
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 170,
+          "id": "AUH",
+          "name": "Zayed International Airport"
+        }
+      ],
+      "price": 795,
+      "total_duration": 1280,
+      "type": "Round trip"
+    }
+  ],
+  "price_insights": {
+    "lowest_price": 724,
+    "price_history": [
+      [
+        1782486000,
+        683
+      ],
+      [
+        1782572400,
+        689
+      ],
+      [
+        1782658800,
+        689
+      ],
+      [
+        1782745200,
+        686
+      ],
+      [
+        1782831600,
+        684
+      ],
+      [
+        1782918000,
+        684
+      ],
+      [
+        1783004400,
+        686
+      ],
+      [
+        1783090800,
+        690
+      ],
+      [
+        1783177200,
+        696
+      ],
+      [
+        1783263600,
+        696
+      ],
+      [
+        1783350000,
+        696
+      ],
+      [
+        1783436400,
+        698
+      ],
+      [
+        1783522800,
+        697
+      ],
+      [
+        1783609200,
+        699
+      ],
+      [
+        1783695600,
+        698
+      ],
+      [
+        1783782000,
+        702
+      ],
+      [
+        1783868400,
+        701
+      ],
+      [
+        1783954800,
+        697
+      ],
+      [
+        1784041200,
+        698
+      ],
+      [
+        1784127600,
+        699
+      ],
+      [
+        1784214000,
+        699
+      ],
+      [
+        1784300400,
+        701
+      ],
+      [
+        1784386800,
+        697
+      ],
+      [
+        1784473200,
+        697
+      ],
+      [
+        1784559600,
+        697
+      ],
+      [
+        1784646000,
+        700
+      ],
+      [
+        1784732400,
+        697
+      ],
+      [
+        1784818800,
+        699
+      ],
+      [
+        1784905200,
+        695
+      ],
+      [
+        1784991600,
+        702
+      ],
+      [
+        1785078000,
+        702
+      ],
+      [
+        1785164400,
+        696
+      ],
+      [
+        1785250800,
+        693
+      ],
+      [
+        1785337200,
+        698
+      ],
+      [
+        1785423600,
+        700
+      ],
+      [
+        1785510000,
+        707
+      ],
+      [
+        1785596400,
+        696
+      ],
+      [
+        1785682800,
+        696
+      ],
+      [
+        1785769200,
+        700
+      ],
+      [
+        1785855600,
+        704
+      ],
+      [
+        1785942000,
+        708
+      ],
+      [
+        1786028400,
+        707
+      ],
+      [
+        1786114800,
+        712
+      ],
+      [
+        1786201200,
+        712
+      ],
+      [
+        1786287600,
+        713
+      ],
+      [
+        1786374000,
+        703
+      ],
+      [
+        1786460400,
+        643
+      ],
+      [
+        1786546800,
+        641
+      ],
+      [
+        1786633200,
+        640
+      ],
+      [
+        1786719600,
+        643
+      ],
+      [
+        1786806000,
+        640
+      ],
+      [
+        1786892400,
+        641
+      ],
+      [
+        1786978800,
+        709
+      ],
+      [
+        1787065200,
+        643
+      ],
+      [
+        1787151600,
+        654
+      ],
+      [
+        1787238000,
+        723
+      ],
+      [
+        1787324400,
+        653
+      ],
+      [
+        1787410800,
+        653
+      ],
+      [
+        1787497200,
+        653
+      ],
+      [
+        1787583600,
+        726
+      ],
+      [
+        1787670000,
+        725
+      ],
+      [
+        1787756400,
+        724
+      ]
+    ],
+    "price_level": "typical",
+    "typical_price_range": [
+      710,
+      1050
+    ]
+  },
+  "search_metadata": {
+    "created_at": "2026-08-26 22:05:56 UTC",
+    "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=USD&tfs=CBwQAhoeEgoyMDI3LTAyLTEyagcIARIDSUNOcgcIARIDTEhSGh4SCjIwMjctMDItMjFqBwgBEgNMSFJyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
+    "id": "6a8f6344822c5f405ccf2918",
+    "json_endpoint": "https://serpapi.com/searches/ZkGfA-7YQqX8MT2gtb1RnA/6a8f6344822c5f405ccf2918.json",
+    "markdown_endpoint": "https://serpapi.com/searches/ZkGfA-7YQqX8MT2gtb1RnA/6a8f6344822c5f405ccf2918.md",
+    "prettify_html_file": "https://serpapi.com/searches/ZkGfA-7YQqX8MT2gtb1RnA/6a8f6344822c5f405ccf2918.prettify",
+    "processed_at": "2026-08-26 22:05:56 UTC",
+    "raw_html_file": "https://serpapi.com/searches/ZkGfA-7YQqX8MT2gtb1RnA/6a8f6344822c5f405ccf2918.html",
+    "status": "Success",
+    "total_time_taken": 1.23
+  },
+  "search_parameters": {
+    "arrival_id": "LHR",
+    "currency": "USD",
+    "departure_id": "ICN",
+    "engine": "google_flights",
+    "gl": "us",
+    "hl": "en",
+    "outbound_date": "2027-02-12",
+    "return_date": "2027-02-21",
+    "travel_class": 1,
+    "type": "1"
+  }
+}

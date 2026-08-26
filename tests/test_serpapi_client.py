@@ -4,10 +4,12 @@ from datetime import date
 import pytest
 
 from flight_tracker.serpapi_client import (
+    SERPAPI_API_KEY_ENV_VAR,
     SERPAPI_TRAVEL_CLASS_CODES,
     SerpApiFixtureRequest,
     build_serpapi_google_flights_url,
     default_google_flights_fixture_request,
+    load_serpapi_api_key_from_environment,
     save_serpapi_fixture,
 )
 
@@ -88,3 +90,42 @@ def test_save_serpapi_fixture_writes_json(tmp_path) -> None:
 
     assert saved_path == output_path
     assert json.loads(output_path.read_text()) == {"provider": "serpapi"}
+
+
+def test_load_serpapi_api_key_prefers_environment(monkeypatch, tmp_path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text("SERPAPI_API_KEY=from_file\n")
+    monkeypatch.setenv(SERPAPI_API_KEY_ENV_VAR, "from_environment")
+
+    api_key = load_serpapi_api_key_from_environment(env_file)
+
+    assert api_key == "from_environment"
+
+
+def test_load_serpapi_api_key_reads_local_env_file(monkeypatch, tmp_path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text("# local secrets stay outside git\nSERPAPI_API_KEY=from_file\n")
+    monkeypatch.delenv(SERPAPI_API_KEY_ENV_VAR, raising=False)
+
+    api_key = load_serpapi_api_key_from_environment(env_file)
+
+    assert api_key == "from_file"
+
+
+def test_load_serpapi_api_key_strips_quotes_from_env_file(
+    monkeypatch, tmp_path
+) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text('SERPAPI_API_KEY="quoted_value"\n')
+    monkeypatch.delenv(SERPAPI_API_KEY_ENV_VAR, raising=False)
+
+    api_key = load_serpapi_api_key_from_environment(env_file)
+
+    assert api_key == "quoted_value"
+
+
+def test_load_serpapi_api_key_raises_when_missing(monkeypatch, tmp_path) -> None:
+    monkeypatch.delenv(SERPAPI_API_KEY_ENV_VAR, raising=False)
+
+    with pytest.raises(RuntimeError, match=SERPAPI_API_KEY_ENV_VAR):
+        load_serpapi_api_key_from_environment(tmp_path / ".env")

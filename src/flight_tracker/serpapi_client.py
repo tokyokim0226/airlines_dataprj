@@ -105,8 +105,31 @@ def save_serpapi_fixture(payload: dict[str, Any], output_path: Path) -> Path:
     return output_path
 
 
-def load_serpapi_api_key_from_environment() -> str:
+def load_serpapi_api_key_from_environment(env_file: Path = Path(".env")) -> str:
     api_key = os.environ.get(SERPAPI_API_KEY_ENV_VAR, "")
-    if not api_key:
-        raise RuntimeError(f"{SERPAPI_API_KEY_ENV_VAR} is required")
-    return api_key
+    if api_key:
+        return api_key
+
+    # Fall back to a local .env file so you do not need to export the key every
+    # time. .env is ignored by git, so the real key should stay local.
+    api_key = _load_value_from_env_file(env_file, SERPAPI_API_KEY_ENV_VAR)
+    if api_key:
+        return api_key
+
+    raise RuntimeError(f"{SERPAPI_API_KEY_ENV_VAR} is required")
+
+
+def _load_value_from_env_file(env_file: Path, key: str) -> str:
+    if not env_file.exists():
+        return ""
+
+    for raw_line in env_file.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        env_key, env_value = line.split("=", 1)
+        if env_key.strip() == key:
+            return env_value.strip().strip('"').strip("'")
+
+    return ""
