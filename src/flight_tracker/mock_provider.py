@@ -4,7 +4,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 from typing import Any
 
-from flight_tracker.models import FlightOffer
+from flight_tracker.models import TripOffer
 from flight_tracker.parser import parse_mock_flight_response
 from flight_tracker.validation import validate_travel_class
 
@@ -24,19 +24,25 @@ class MockFlightProvider:
         origin: str,
         destination: str,
         departure_date: date,
+        return_date: date,
         travel_class: str = "economy",
     ) -> dict[str, Any]:
         validate_travel_class(travel_class)
+        if return_date <= departure_date:
+            raise ValueError("return_date must be after departure_date")
 
         # Each search advances the price so repeated collection creates history.
         price = self._prices[self._search_count % len(self._prices)]
         self._search_count += 1
 
-        # Keep mock flight times deterministic: same route/date always has same times.
-        departure_time = datetime.combine(
+        outbound_departure = datetime.combine(
             departure_date, time(hour=9), tzinfo=timezone.utc
         )
-        arrival_time = departure_time + timedelta(hours=3)
+        outbound_arrival = outbound_departure + timedelta(hours=3)
+        return_departure = datetime.combine(
+            return_date, time(hour=18), tzinfo=timezone.utc
+        )
+        return_arrival = return_departure + timedelta(hours=3)
 
         return {
             "provider": self.name,
@@ -44,19 +50,48 @@ class MockFlightProvider:
                 "origin": origin,
                 "destination": destination,
                 "departure_date": departure_date.isoformat(),
+                "return_date": return_date.isoformat(),
                 "travel_class": travel_class,
             },
-            "offers": [
+            "trip_offers": [
                 {
                     "origin": origin,
                     "destination": destination,
-                    "departure_time": departure_time.isoformat(),
-                    "arrival_time": arrival_time.isoformat(),
+                    "departure_date": departure_date.isoformat(),
+                    "return_date": return_date.isoformat(),
                     "price_amount": str(price),
                     "currency": "USD",
-                    "airline": "Mock Air",
-                    "stops": 0,
+                    "airline_summary": "Mock Air",
+                    "outbound_stops": 0,
+                    "return_stops": 0,
+                    "total_duration_minutes": 360,
                     "travel_class": travel_class,
+                    "segments": [
+                        {
+                            "direction": "outbound",
+                            "segment_order": 1,
+                            "origin": origin,
+                            "destination": destination,
+                            "departure_time": outbound_departure.isoformat(),
+                            "arrival_time": outbound_arrival.isoformat(),
+                            "airline": "Mock Air",
+                            "flight_number": "MA 100",
+                            "aircraft": "Mock 737",
+                            "duration_minutes": 180,
+                        },
+                        {
+                            "direction": "return",
+                            "segment_order": 1,
+                            "origin": destination,
+                            "destination": origin,
+                            "departure_time": return_departure.isoformat(),
+                            "arrival_time": return_arrival.isoformat(),
+                            "airline": "Mock Air",
+                            "flight_number": "MA 101",
+                            "aircraft": "Mock 737",
+                            "duration_minutes": 180,
+                        },
+                    ],
                 }
             ],
         }
@@ -66,9 +101,10 @@ class MockFlightProvider:
         origin: str,
         destination: str,
         departure_date: date,
+        return_date: date,
         travel_class: str = "economy",
-    ) -> list[FlightOffer]:
+    ) -> list[TripOffer]:
         raw_response = self.raw_search(
-            origin, destination, departure_date, travel_class
+            origin, destination, departure_date, return_date, travel_class
         )
         return parse_mock_flight_response(raw_response)
