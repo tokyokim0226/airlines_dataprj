@@ -32,7 +32,7 @@ def test_repeated_collection_creates_multiple_historical_observations(tmp_path) 
     history = get_price_history(database, "LAX", "JFK", departure_date)
 
     assert len(history) == 2
-    assert [observation.offer.price_amount for observation in history] == [
+    assert [observation.trip_offer.price_amount for observation in history] == [
         Decimal("250.00"),
         Decimal("275.00"),
     ]

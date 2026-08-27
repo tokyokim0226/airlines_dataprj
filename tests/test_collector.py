@@ -40,15 +40,20 @@ def test_collect_due_prices_collects_scheduled_observations(tmp_path) -> None:
     )
 
     assert len(observations) == 2
-    assert {observation.offer.travel_class for observation in observations} == {
+    assert {observation.trip_offer.travel_class for observation in observations} == {
         "economy",
         "business",
     }
-    assert {observation.offer.origin for observation in observations} == {"ICN"}
-    assert {observation.offer.destination for observation in observations} == {"LHR"}
-    assert {
-        observation.offer.departure_time.date() for observation in observations
-    } == {datetime(2027, 2, 12).date()}
+    assert {observation.trip_offer.origin for observation in observations} == {"ICN"}
+    assert {observation.trip_offer.destination for observation in observations} == {
+        "LHR"
+    }
+    assert {observation.trip_offer.departure_date for observation in observations} == {
+        datetime(2027, 2, 12).date()
+    }
+    assert {observation.trip_offer.return_date for observation in observations} == {
+        datetime(2027, 2, 21).date()
+    }
 
     raw_responses = database.get_raw_provider_responses()
 

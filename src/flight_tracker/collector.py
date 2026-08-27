@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, Protocol
 
 from flight_tracker.database import FlightPriceDatabase
 from flight_tracker.models import (
-    FlightOffer,
     PriceObservation,
     RawProviderResponse,
     SearchRun,
+    TripOffer,
 )
 from flight_tracker.parser import parse_mock_flight_response
 from flight_tracker.routes import Route
@@ -26,6 +26,7 @@ class FlightProvider(Protocol):
         origin: str,
         destination: str,
         departure_date: date,
+        return_date: date,
         travel_class: str = "economy",
     ) -> dict[str, Any]: ...
 
@@ -34,8 +35,9 @@ class FlightProvider(Protocol):
         origin: str,
         destination: str,
         departure_date: date,
+        return_date: date,
         travel_class: str = "economy",
-    ) -> list[FlightOffer]: ...
+    ) -> list[TripOffer]: ...
 
 
 def collect_prices(
@@ -44,23 +46,25 @@ def collect_prices(
     origin: str,
     destination: str,
     departure_date: date,
+    return_date: date | None = None,
     observed_at: datetime | None = None,
     travel_class: str = "economy",
     cohort_id: str | None = None,
     scheduled_lead_time_days: int | None = None,
 ) -> list[PriceObservation]:
-    # Make the collector safe to call even before the database file exists.
+    # Simple ad hoc CLI runs can omit return_date; scheduled cohorts pass it in.
+    trip_return_date = return_date or departure_date + timedelta(days=7)
     database.initialize()
 
     # Tests can pass observed_at for predictable history; real runs use now.
     collected_at = observed_at or datetime.now(UTC)
 
-    # A SearchRun records this collection attempt before we store its results.
     search_run = database.insert_search_run(
         SearchRun(
             origin=origin,
             destination=destination,
             departure_date=departure_date,
+            return_date=trip_return_date,
             provider=provider.name,
             started_at=collected_at,
             travel_class=travel_class,
@@ -70,7 +74,7 @@ def collect_prices(
     )
 
     raw_response = provider.raw_search(
-        origin, destination, departure_date, travel_class
+        origin, destination, departure_date, trip_return_date, travel_class
     )
     database.insert_raw_provider_response(
         RawProviderResponse(
@@ -82,10 +86,10 @@ def collect_prices(
     )
 
     observations: list[PriceObservation] = []
-    for offer in _parse_provider_response(provider.name, raw_response):
-        # Wrap the provider's offer with the time we observed its price.
+    for trip_offer in _parse_provider_response(provider.name, raw_response):
+        # Each insert creates a fresh historical observation for the trip price.
         observation = PriceObservation(
-            offer=offer,
+            trip_offer=trip_offer,
             observed_at=collected_at,
             search_run_id=search_run.id,
         )
@@ -124,6 +128,7 @@ def collect_due_prices(
                 origin=origin,
                 destination=destination,
                 departure_date=cohort.departure_date,
+                return_date=cohort.return_date,
                 observed_at=collected_at,
             )
         )
@@ -138,6 +143,7 @@ def _collect_scheduled_observation(
     origin: str,
     destination: str,
     departure_date: date,
+    return_date: date,
     observed_at: datetime,
 ) -> list[PriceObservation]:
     return collect_prices(
@@ -146,6 +152,7 @@ def _collect_scheduled_observation(
         origin=origin,
         destination=destination,
         departure_date=departure_date,
+        return_date=return_date,
         observed_at=observed_at,
         travel_class=scheduled_observation.travel_class,
         cohort_id=scheduled_observation.cohort_id,
@@ -162,7 +169,7 @@ def _primary_airport_pair(route: Route) -> tuple[str, str]:
 def _parse_provider_response(
     provider_name: str,
     raw_response: dict[str, Any],
-) -> list[FlightOffer]:
+) -> list[TripOffer]:
     if provider_name == "mock":
         return parse_mock_flight_response(raw_response)
     raise ValueError(f"unsupported provider parser: {provider_name}")

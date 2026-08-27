@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -17,13 +17,17 @@ def test_parse_mock_flight_response_from_fixture() -> None:
     assert len(offers) == 1
     assert offers[0].origin == "ICN"
     assert offers[0].destination == "LHR"
-    assert offers[0].departure_time == datetime.fromisoformat(
-        "2027-02-12T09:00:00+00:00"
-    )
+    assert offers[0].departure_date == date(2027, 2, 12)
+    assert offers[0].return_date == date(2027, 2, 21)
     assert offers[0].price_amount == Decimal("1500.00")
     assert offers[0].travel_class == "business"
+    assert len(offers[0].segments) == 2
+    assert offers[0].segments[0].departure_time == datetime.fromisoformat(
+        "2027-02-12T09:00:00+00:00"
+    )
+    assert offers[0].segments[1].direction == "return"
 
 
-def test_parse_mock_flight_response_requires_offers_list() -> None:
-    with pytest.raises(ValueError, match="offers"):
+def test_parse_mock_flight_response_requires_trip_offers_list() -> None:
+    with pytest.raises(ValueError, match="trip_offers"):
         parse_mock_flight_response({"provider": "mock"})

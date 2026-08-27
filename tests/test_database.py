@@ -4,8 +4,9 @@ from decimal import Decimal
 from flight_tracker.cohorts import build_monthly_baseline_cohort
 from flight_tracker.database import FlightPriceDatabase
 from flight_tracker.models import (
-    FlightOffer,
+    FlightSegment,
     PriceObservation,
+    TripOffer,
     RawProviderResponse,
     SearchRun,
 )
@@ -105,6 +106,7 @@ def test_database_stores_raw_provider_responses(tmp_path) -> None:
             origin="ICN",
             destination="LHR",
             departure_date=date(2027, 2, 12),
+            return_date=date(2027, 2, 21),
             provider="mock",
             started_at=datetime(2026, 8, 16, 10, tzinfo=UTC),
             travel_class="business",
@@ -138,37 +140,60 @@ def test_database_returns_price_history_in_chronological_order(tmp_path) -> None
             origin="LAX",
             destination="JFK",
             departure_date=departure_date,
+            return_date=departure_date + timedelta(days=7),
             provider="mock",
             started_at=datetime(2026, 7, 1, 10, tzinfo=UTC),
         )
     )
 
     later = PriceObservation(
-        offer=FlightOffer(
+        trip_offer=TripOffer(
             origin="LAX",
             destination="JFK",
-            departure_time=departure_time,
-            arrival_time=departure_time + timedelta(hours=5),
+            departure_date=departure_date,
+            return_date=departure_date + timedelta(days=7),
             price_amount=Decimal("220.00"),
             currency="USD",
-            airline="Mock Air",
-            stops=0,
             provider="mock",
+            airline_summary="Mock Air",
+            segments=(
+                FlightSegment(
+                    direction="outbound",
+                    segment_order=1,
+                    origin="LAX",
+                    destination="JFK",
+                    departure_time=departure_time,
+                    arrival_time=departure_time + timedelta(hours=5),
+                    airline="Mock Air",
+                    duration_minutes=300,
+                ),
+            ),
         ),
         observed_at=datetime(2026, 7, 2, 10, tzinfo=UTC),
         search_run_id=search_run.id,
     )
     earlier = PriceObservation(
-        offer=FlightOffer(
+        trip_offer=TripOffer(
             origin="LAX",
             destination="JFK",
-            departure_time=departure_time,
-            arrival_time=departure_time + timedelta(hours=5),
+            departure_date=departure_date,
+            return_date=departure_date + timedelta(days=7),
             price_amount=Decimal("210.00"),
             currency="USD",
-            airline="Mock Air",
-            stops=0,
             provider="mock",
+            airline_summary="Mock Air",
+            segments=(
+                FlightSegment(
+                    direction="outbound",
+                    segment_order=1,
+                    origin="LAX",
+                    destination="JFK",
+                    departure_time=departure_time,
+                    arrival_time=departure_time + timedelta(hours=5),
+                    airline="Mock Air",
+                    duration_minutes=300,
+                ),
+            ),
         ),
         observed_at=datetime(2026, 7, 1, 10, tzinfo=UTC),
         search_run_id=search_run.id,
@@ -179,7 +204,9 @@ def test_database_returns_price_history_in_chronological_order(tmp_path) -> None
 
     history = database.get_price_history("LAX", "JFK", departure_date)
 
-    assert [observation.offer.price_amount for observation in history] == [
+    assert [observation.trip_offer.price_amount for observation in history] == [
         Decimal("210.00"),
         Decimal("220.00"),
     ]
+    assert len(history[0].trip_offer.segments) == 1
+    assert history[0].trip_offer.segments[0].trip_offer_id == history[0].trip_offer.id

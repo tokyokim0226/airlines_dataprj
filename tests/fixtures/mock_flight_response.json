@@ -4,19 +4,48 @@
     "origin": "ICN",
     "destination": "LHR",
     "departure_date": "2027-02-12",
+    "return_date": "2027-02-21",
     "travel_class": "business"
   },
-  "offers": [
+  "trip_offers": [
     {
       "origin": "ICN",
       "destination": "LHR",
-      "departure_time": "2027-02-12T09:00:00+00:00",
-      "arrival_time": "2027-02-12T12:00:00+00:00",
+      "departure_date": "2027-02-12",
+      "return_date": "2027-02-21",
       "price_amount": "1500.00",
       "currency": "USD",
-      "airline": "Mock Air",
-      "stops": 0,
-      "travel_class": "business"
+      "airline_summary": "Mock Air",
+      "outbound_stops": 0,
+      "return_stops": 0,
+      "total_duration_minutes": 720,
+      "travel_class": "business",
+      "segments": [
+        {
+          "direction": "outbound",
+          "segment_order": 1,
+          "origin": "ICN",
+          "destination": "LHR",
+          "departure_time": "2027-02-12T09:00:00+00:00",
+          "arrival_time": "2027-02-12T12:00:00+00:00",
+          "airline": "Mock Air",
+          "flight_number": "MA 100",
+          "aircraft": "Mock 737",
+          "duration_minutes": 360
+        },
+        {
+          "direction": "return",
+          "segment_order": 1,
+          "origin": "LHR",
+          "destination": "ICN",
+          "departure_time": "2027-02-21T18:00:00+00:00",
+          "arrival_time": "2027-02-22T06:00:00+00:00",
+          "airline": "Mock Air",
+          "flight_number": "MA 101",
+          "aircraft": "Mock 737",
+          "duration_minutes": 360
+        }
+      ]
     }
   ]
 }

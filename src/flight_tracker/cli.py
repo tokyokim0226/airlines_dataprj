@@ -60,6 +60,7 @@ def main() -> None:
     collect_parser.add_argument("--origin", default="LAX")
     collect_parser.add_argument("--destination", default="JFK")
     collect_parser.add_argument("--departure-date", default=date.today().isoformat())
+    collect_parser.add_argument("--return-date")
     collect_parser.add_argument(
         "--travel-class",
         choices=("economy", "business"),
@@ -111,6 +112,9 @@ def main() -> None:
         return
 
     departure_date = date.fromisoformat(args.departure_date)
+    return_date = (
+        date.fromisoformat(args.return_date) if args.return_date else None
+    )
 
     collect_prices(
         provider=provider,
@@ -118,19 +122,23 @@ def main() -> None:
         origin=args.origin,
         destination=args.destination,
         departure_date=departure_date,
+        return_date=return_date,
         travel_class=args.travel_class,
     )
-    history = get_price_history(database, args.origin, args.destination, departure_date)
+    history = get_price_history(
+        database, args.origin, args.destination, departure_date, return_date
+    )
 
     # Print the full history after this collection so the CLI shows accumulation.
     for observation in history:
-        offer = observation.offer
+        trip_offer = observation.trip_offer
         print(
             f"{observation.observed_at.isoformat()} "
-            f"{offer.origin}->{offer.destination} "
-            f"{offer.departure_time.date().isoformat()} "
-            f"{offer.airline} {offer.travel_class} "
-            f"{offer.price_amount} {offer.currency}"
+            f"{trip_offer.origin}->{trip_offer.destination} "
+            f"{trip_offer.departure_date.isoformat()} "
+            f"return {trip_offer.return_date.isoformat()} "
+            f"{trip_offer.airline_summary} {trip_offer.travel_class} "
+            f"{trip_offer.price_amount} {trip_offer.currency}"
         )
 
 

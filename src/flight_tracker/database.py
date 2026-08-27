@@ -7,10 +7,11 @@ from pathlib import Path
 
 from flight_tracker.cohorts import TripCohort
 from flight_tracker.models import (
-    FlightOffer,
+    FlightSegment,
     PriceObservation,
     RawProviderResponse,
     SearchRun,
+    TripOffer,
 )
 from flight_tracker.routes import Route
 from flight_tracker.scheduling import ScheduledObservation
@@ -75,6 +76,7 @@ class FlightPriceDatabase:
                     origin TEXT NOT NULL,
                     destination TEXT NOT NULL,
                     departure_date TEXT NOT NULL,
+                    return_date TEXT NOT NULL,
                     provider TEXT NOT NULL,
                     started_at TEXT NOT NULL,
                     travel_class TEXT NOT NULL DEFAULT 'economy',
@@ -97,49 +99,63 @@ class FlightPriceDatabase:
             )
             connection.execute(
                 """
-                -- Each row here is historical. We insert new rows instead of
-                -- updating old rows so price changes can be analyzed later.
-                CREATE TABLE IF NOT EXISTS price_observations (
+                CREATE TABLE IF NOT EXISTS trip_offers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     search_run_id INTEGER NOT NULL,
                     origin TEXT NOT NULL,
                     destination TEXT NOT NULL,
-                    departure_time TEXT NOT NULL,
-                    arrival_time TEXT NOT NULL,
-                    observed_at TEXT NOT NULL,
+                    departure_date TEXT NOT NULL,
+                    return_date TEXT NOT NULL,
                     price_amount TEXT NOT NULL,
                     currency TEXT NOT NULL,
-                    airline TEXT NOT NULL,
-                    stops INTEGER NOT NULL,
                     provider TEXT NOT NULL,
                     travel_class TEXT NOT NULL DEFAULT 'economy',
+                    airline_summary TEXT NOT NULL,
+                    outbound_stops INTEGER NOT NULL,
+                    return_stops INTEGER NOT NULL,
+                    total_duration_minutes INTEGER,
                     FOREIGN KEY (search_run_id) REFERENCES search_runs (id)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS flight_segments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    trip_offer_id INTEGER NOT NULL,
+                    direction TEXT NOT NULL,
+                    segment_order INTEGER NOT NULL,
+                    origin TEXT NOT NULL,
+                    destination TEXT NOT NULL,
+                    departure_time TEXT NOT NULL,
+                    arrival_time TEXT NOT NULL,
+                    airline TEXT NOT NULL,
+                    flight_number TEXT,
+                    aircraft TEXT,
+                    duration_minutes INTEGER,
+                    FOREIGN KEY (trip_offer_id) REFERENCES trip_offers (id)
+                )
+                """
+            )
+            connection.execute(
+                """
+                -- Each row is historical. Repeated collections insert new rows
+                -- so price movement can be analyzed later.
+                CREATE TABLE IF NOT EXISTS price_observations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    search_run_id INTEGER NOT NULL,
+                    trip_offer_id INTEGER NOT NULL,
+                    observed_at TEXT NOT NULL,
+                    FOREIGN KEY (search_run_id) REFERENCES search_runs (id),
+                    FOREIGN KEY (trip_offer_id) REFERENCES trip_offers (id)
                 )
                 """
             )
             self._ensure_column(
                 connection,
                 table_name="search_runs",
-                column_name="travel_class",
-                column_definition="TEXT NOT NULL DEFAULT 'economy'",
-            )
-            self._ensure_column(
-                connection,
-                table_name="search_runs",
-                column_name="cohort_id",
-                column_definition="TEXT",
-            )
-            self._ensure_column(
-                connection,
-                table_name="search_runs",
-                column_name="scheduled_lead_time_days",
-                column_definition="INTEGER",
-            )
-            self._ensure_column(
-                connection,
-                table_name="price_observations",
-                column_name="travel_class",
-                column_definition="TEXT NOT NULL DEFAULT 'economy'",
+                column_name="return_date",
+                column_definition="TEXT NOT NULL DEFAULT '1970-01-02'",
             )
 
     def upsert_route(self, route: Route) -> Route:
@@ -419,18 +435,20 @@ class FlightPriceDatabase:
                     origin,
                     destination,
                     departure_date,
+                    return_date,
                     provider,
                     started_at,
                     travel_class,
                     cohort_id,
                     scheduled_lead_time_days
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     search_run.origin,
                     search_run.destination,
                     search_run.departure_date.isoformat(),
+                    search_run.return_date.isoformat(),
                     search_run.provider,
                     search_run.started_at.isoformat(),
                     search_run.travel_class,
@@ -444,6 +462,7 @@ class FlightPriceDatabase:
             origin=search_run.origin,
             destination=search_run.destination,
             departure_date=search_run.departure_date,
+            return_date=search_run.return_date,
             provider=search_run.provider,
             started_at=search_run.started_at,
             travel_class=search_run.travel_class,
@@ -522,47 +541,31 @@ class FlightPriceDatabase:
         if observation.search_run_id is None:
             raise ValueError("search_run_id is required before storing an observation")
 
-        offer = observation.offer
-        # This is always an INSERT, never an UPDATE, to preserve old observations.
+        # Store the trip offer and its legs, then store the append-only price event.
         with self._connect() as connection:
+            trip_offer = self._insert_trip_offer(
+                connection, observation.trip_offer, observation.search_run_id
+            )
             cursor = connection.execute(
                 """
                 INSERT INTO price_observations (
                     search_run_id,
-                    origin,
-                    destination,
-                    departure_time,
-                    arrival_time,
-                    observed_at,
-                    price_amount,
-                    currency,
-                    airline,
-                    stops,
-                    provider,
-                    travel_class
+                    trip_offer_id,
+                    observed_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?)
                 """,
                 (
                     observation.search_run_id,
-                    offer.origin,
-                    offer.destination,
-                    offer.departure_time.isoformat(),
-                    offer.arrival_time.isoformat(),
+                    trip_offer.id,
                     observation.observed_at.isoformat(),
-                    str(offer.price_amount),
-                    offer.currency,
-                    offer.airline,
-                    offer.stops,
-                    offer.provider,
-                    offer.travel_class,
                 ),
             )
 
         return PriceObservation(
             id=cursor.lastrowid,
             search_run_id=observation.search_run_id,
-            offer=offer,
+            trip_offer=trip_offer,
             observed_at=observation.observed_at,
         )
 
@@ -571,40 +574,196 @@ class FlightPriceDatabase:
         origin: str,
         destination: str,
         departure_date: date,
+        return_date: date | None = None,
     ) -> list[PriceObservation]:
-        # The departure_time column includes a full timestamp, so compare only
-        # the YYYY-MM-DD date part when filtering for a departure date.
-        start_of_day = (
-            datetime.combine(departure_date, datetime.min.time()).date().isoformat()
-        )
+        parameters: list[object] = [origin, destination, departure_date.isoformat()]
+        return_date_filter = ""
+        if return_date is not None:
+            return_date_filter = "AND trip_offers.return_date = ?"
+            parameters.append(return_date.isoformat())
 
         with self._connect() as connection:
             rows = connection.execute(
-                """
+                f"""
                 SELECT
-                    id,
-                    search_run_id,
-                    origin,
-                    destination,
-                    departure_time,
-                    arrival_time,
-                    observed_at,
-                    price_amount,
-                    currency,
-                    airline,
-                    stops,
-                    provider,
-                    travel_class
+                    price_observations.id,
+                    price_observations.search_run_id,
+                    price_observations.observed_at,
+                    trip_offers.id,
+                    trip_offers.origin,
+                    trip_offers.destination,
+                    trip_offers.departure_date,
+                    trip_offers.return_date,
+                    trip_offers.price_amount,
+                    trip_offers.currency,
+                    trip_offers.provider,
+                    trip_offers.travel_class,
+                    trip_offers.airline_summary,
+                    trip_offers.outbound_stops,
+                    trip_offers.return_stops,
+                    trip_offers.total_duration_minutes
                 FROM price_observations
-                WHERE origin = ?
-                    AND destination = ?
-                    AND substr(departure_time, 1, 10) = ?
-                ORDER BY observed_at ASC, id ASC
+                JOIN trip_offers
+                    ON trip_offers.id = price_observations.trip_offer_id
+                WHERE trip_offers.origin = ?
+                    AND trip_offers.destination = ?
+                    AND trip_offers.departure_date = ?
+                    {return_date_filter}
+                ORDER BY price_observations.observed_at ASC, price_observations.id ASC
                 """,
-                (origin, destination, start_of_day),
+                tuple(parameters),
             ).fetchall()
 
-        return [self._row_to_observation(row) for row in rows]
+            observations = []
+            for row in rows:
+                observations.append(self._row_to_observation(connection, row))
+
+        return observations
+
+    def get_flight_segments(self, trip_offer_id: int) -> list[FlightSegment]:
+        with self._connect() as connection:
+            return self._get_flight_segments(connection, trip_offer_id)
+
+    def _insert_trip_offer(
+        self,
+        connection: sqlite3.Connection,
+        trip_offer: TripOffer,
+        search_run_id: int,
+    ) -> TripOffer:
+        cursor = connection.execute(
+            """
+            INSERT INTO trip_offers (
+                search_run_id,
+                origin,
+                destination,
+                departure_date,
+                return_date,
+                price_amount,
+                currency,
+                provider,
+                travel_class,
+                airline_summary,
+                outbound_stops,
+                return_stops,
+                total_duration_minutes
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                search_run_id,
+                trip_offer.origin,
+                trip_offer.destination,
+                trip_offer.departure_date.isoformat(),
+                trip_offer.return_date.isoformat(),
+                str(trip_offer.price_amount),
+                trip_offer.currency,
+                trip_offer.provider,
+                trip_offer.travel_class,
+                trip_offer.airline_summary,
+                trip_offer.outbound_stops,
+                trip_offer.return_stops,
+                trip_offer.total_duration_minutes,
+            ),
+        )
+        trip_offer_id = int(cursor.lastrowid)
+        stored_segments = tuple(
+            self._insert_flight_segment(connection, segment, trip_offer_id)
+            for segment in trip_offer.segments
+        )
+        return TripOffer(
+            id=trip_offer_id,
+            origin=trip_offer.origin,
+            destination=trip_offer.destination,
+            departure_date=trip_offer.departure_date,
+            return_date=trip_offer.return_date,
+            price_amount=trip_offer.price_amount,
+            currency=trip_offer.currency,
+            provider=trip_offer.provider,
+            travel_class=trip_offer.travel_class,
+            airline_summary=trip_offer.airline_summary,
+            outbound_stops=trip_offer.outbound_stops,
+            return_stops=trip_offer.return_stops,
+            total_duration_minutes=trip_offer.total_duration_minutes,
+            segments=stored_segments,
+        )
+
+    def _insert_flight_segment(
+        self,
+        connection: sqlite3.Connection,
+        segment: FlightSegment,
+        trip_offer_id: int,
+    ) -> FlightSegment:
+        cursor = connection.execute(
+            """
+            INSERT INTO flight_segments (
+                trip_offer_id,
+                direction,
+                segment_order,
+                origin,
+                destination,
+                departure_time,
+                arrival_time,
+                airline,
+                flight_number,
+                aircraft,
+                duration_minutes
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                trip_offer_id,
+                segment.direction,
+                segment.segment_order,
+                segment.origin,
+                segment.destination,
+                segment.departure_time.isoformat(),
+                segment.arrival_time.isoformat(),
+                segment.airline,
+                segment.flight_number,
+                segment.aircraft,
+                segment.duration_minutes,
+            ),
+        )
+        return FlightSegment(
+            id=cursor.lastrowid,
+            trip_offer_id=trip_offer_id,
+            direction=segment.direction,
+            segment_order=segment.segment_order,
+            origin=segment.origin,
+            destination=segment.destination,
+            departure_time=segment.departure_time,
+            arrival_time=segment.arrival_time,
+            airline=segment.airline,
+            flight_number=segment.flight_number,
+            aircraft=segment.aircraft,
+            duration_minutes=segment.duration_minutes,
+        )
+
+    def _get_flight_segments(
+        self, connection: sqlite3.Connection, trip_offer_id: int
+    ) -> list[FlightSegment]:
+        rows = connection.execute(
+            """
+            SELECT
+                id,
+                trip_offer_id,
+                direction,
+                segment_order,
+                origin,
+                destination,
+                departure_time,
+                arrival_time,
+                airline,
+                flight_number,
+                aircraft,
+                duration_minutes
+            FROM flight_segments
+            WHERE trip_offer_id = ?
+            ORDER BY direction ASC, segment_order ASC, id ASC
+            """,
+            (trip_offer_id,),
+        ).fetchall()
+        return [self._row_to_flight_segment(row) for row in rows]
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path)
@@ -714,41 +873,88 @@ class FlightPriceDatabase:
             response_text=str(response_text),
         )
 
-    @staticmethod
-    def _row_to_observation(row: sqlite3.Row | tuple[object, ...]) -> PriceObservation:
-        # SQLite returns basic values; convert them back into our model objects.
+    def _row_to_observation(
+        self,
+        connection: sqlite3.Connection,
+        row: sqlite3.Row | tuple[object, ...],
+    ) -> PriceObservation:
         (
             observation_id,
             search_run_id,
+            observed_at,
+            trip_offer_id,
             origin,
             destination,
-            departure_time,
-            arrival_time,
-            observed_at,
+            departure_date,
+            return_date,
             price_amount,
             currency,
-            airline,
-            stops,
             provider,
             travel_class,
+            airline_summary,
+            outbound_stops,
+            return_stops,
+            total_duration_minutes,
         ) = row
 
-        offer = FlightOffer(
+        trip_offer = TripOffer(
+            id=int(trip_offer_id),
             origin=str(origin),
             destination=str(destination),
-            departure_time=datetime.fromisoformat(str(departure_time)),
-            arrival_time=datetime.fromisoformat(str(arrival_time)),
+            departure_date=date.fromisoformat(str(departure_date)),
+            return_date=date.fromisoformat(str(return_date)),
             price_amount=Decimal(str(price_amount)),
             currency=str(currency),
-            airline=str(airline),
-            stops=int(stops),
             provider=str(provider),
             travel_class=str(travel_class),
+            airline_summary=str(airline_summary),
+            outbound_stops=int(outbound_stops),
+            return_stops=int(return_stops),
+            total_duration_minutes=int(total_duration_minutes)
+            if total_duration_minutes is not None
+            else None,
+            segments=tuple(self._get_flight_segments(connection, int(trip_offer_id))),
         )
 
         return PriceObservation(
             id=int(observation_id),
             search_run_id=int(search_run_id),
-            offer=offer,
+            trip_offer=trip_offer,
             observed_at=datetime.fromisoformat(str(observed_at)),
+        )
+
+    @staticmethod
+    def _row_to_flight_segment(
+        row: sqlite3.Row | tuple[object, ...]
+    ) -> FlightSegment:
+        (
+            segment_id,
+            trip_offer_id,
+            direction,
+            segment_order,
+            origin,
+            destination,
+            departure_time,
+            arrival_time,
+            airline,
+            flight_number,
+            aircraft,
+            duration_minutes,
+        ) = row
+
+        return FlightSegment(
+            id=int(segment_id),
+            trip_offer_id=int(trip_offer_id),
+            direction=str(direction),
+            segment_order=int(segment_order),
+            origin=str(origin),
+            destination=str(destination),
+            departure_time=datetime.fromisoformat(str(departure_time)),
+            arrival_time=datetime.fromisoformat(str(arrival_time)),
+            airline=str(airline),
+            flight_number=str(flight_number) if flight_number is not None else None,
+            aircraft=str(aircraft) if aircraft is not None else None,
+            duration_minutes=int(duration_minutes)
+            if duration_minutes is not None
+            else None,
         )
