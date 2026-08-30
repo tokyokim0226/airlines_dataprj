@@ -45,6 +45,9 @@ class SerpApiFixtureRequest:
 
         # Keep this request deliberately narrow: one round-trip Google Flights
         # search used only to capture a real fixture for parser development.
+        # SerpAPI's first round-trip response can expose priced outbound options;
+        # complete return-flight details may require a follow-up departure_token
+        # request for the outbound option we decide to inspect.
         return {
             "engine": "google_flights",
             "type": "1",
